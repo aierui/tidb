@@ -1,0 +1,4579 @@
+@startuml
+namespace aggfuncs {
+    interface AggFunc  {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    interface SlidingWindowAggFunc  {
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class aggfuncs.PartialResult << (T, #FF7700) >>  {
+    }
+    class aggfuncs.approxCountDistinctHashValue << (T, #FF7700) >>  {
+    }
+    class aggfuncs.partialResult4BitFunc << (T, #FF7700) >>  {
+    }
+    class aggfuncs.partialResult4Count << (T, #FF7700) >>  {
+    }
+    class approxCountDistinctFinal << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class approxCountDistinctOriginal << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class approxCountDistinctPartial1 << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class approxCountDistinctPartial2 << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class avgOriginal4Decimal << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class avgOriginal4DistinctDecimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class avgOriginal4DistinctFloat64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class avgOriginal4Float64 << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class avgPartial4Decimal << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class avgPartial4Float64 << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class baseAggFunc << (S,Aquamarine) >> {
+        - args []expression.Expression
+        - ordinal int
+
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class baseApproxCountDistinct << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class baseAvgDecimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class baseAvgFloat64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class baseBitAggFunc << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class baseCount << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class baseGroupConcat4String << (S,Aquamarine) >> {
+        - byItems []*util.ByItems
+        - sep string
+        - maxLen uint64
+        - truncated *int32
+
+        - handleTruncateError(sctx sessionctx.Context) error
+        - truncatePartialResultIfNeed(sctx sessionctx.Context, buffer *bytes.Buffer) error
+
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class baseLeadLag << (S,Aquamarine) >> {
+        - defaultExpr expression.Expression
+        - offset uint64
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class baseMaxMinAggFunc << (S,Aquamarine) >> {
+        - isMax bool
+
+    }
+    class basePartialResult4FirstRow << (S,Aquamarine) >> {
+        - isNull bool
+        - gotFirstRow bool
+
+    }
+    class basePartialResult4GroupConcat << (S,Aquamarine) >> {
+        - valsBuf *bytes.Buffer
+        - buffer *bytes.Buffer
+
+    }
+    class baseSum4Float64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class baseSumAggFunc << (S,Aquamarine) >> {
+    }
+    class baseVarPopAggFunc << (S,Aquamarine) >> {
+    }
+    class bitAndUint64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class bitOrUint64 << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class bitXorUint64 << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class countOriginal4Decimal << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4Duration << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4Int << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4JSON << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4Real << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4String << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginal4Time << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct4Decimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct4Duration << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct4Int << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct4Real << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countOriginalWithDistinct4String << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class countPartial << (S,Aquamarine) >> {
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class cumeDist << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Decimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class firstRow4Duration << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Enum << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Float32 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Float64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Int << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4JSON << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Set << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4String << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstRow4Time << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class firstValue << (S,Aquamarine) >> {
+        - tp *types.FieldType
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class groupConcat << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + SetTruncated(t *int32) 
+        + GetTruncated() *int32
+
+    }
+    class groupConcatDistinct << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + SetTruncated(t *int32) 
+        + GetTruncated() *int32
+
+    }
+    class groupConcatDistinctOrder << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class groupConcatOrder << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+        + SetTruncated(t *int32) 
+        + GetTruncated() *int32
+
+    }
+    class jsonObjectAgg << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class lag << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class lastValue << (S,Aquamarine) >> {
+        - tp *types.FieldType
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class lead << (S,Aquamarine) >> {
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class maxMin4Decimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Duration << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Float32 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Float64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Int << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4JSON << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4String << (S,Aquamarine) >> {
+        - retTp *types.FieldType
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Time << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class maxMin4Uint << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class nthValue << (S,Aquamarine) >> {
+        - tp *types.FieldType
+        - nth uint64
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class ntile << (S,Aquamarine) >> {
+        - n uint64
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(_ sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(_ sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class partialResult4ApproxCountDistinct << (S,Aquamarine) >> {
+        - size uint32
+        - sizeDegree uint8
+        - skipDegree uint8
+        - hasZero bool
+        - buf []approxCountDistinctHashValue
+
+        - alloc(newSizeDegree uint8) 
+        - reset() 
+        - bufSize() uint32
+        - mask() uint32
+        - place(x approxCountDistinctHashValue) uint32
+        - resize(newSizeDegree uint8) 
+        - readAndMerge(rb []byte) error
+        - fixedSize() uint64
+        - insertHash(hashValue approxCountDistinctHashValue) 
+        - good(hash approxCountDistinctHashValue) bool
+        - insertImpl(x approxCountDistinctHashValue) 
+        - shrinkIfNeed() 
+        - maxFill() uint32
+        - rehash() 
+        - reinsertImpl(x approxCountDistinctHashValue) 
+        - merge(tar *partialResult4ApproxCountDistinct) 
+
+        + InsertHash64(x uint64) 
+        + Serialize() []byte
+
+    }
+    class partialResult4AvgDecimal << (S,Aquamarine) >> {
+        - sum types.MyDecimal
+        - count int64
+
+    }
+    class partialResult4AvgDistinctDecimal << (S,Aquamarine) >> {
+        - valSet set.StringSet
+
+    }
+    class partialResult4AvgDistinctFloat64 << (S,Aquamarine) >> {
+        - valSet set.Float64Set
+
+    }
+    class partialResult4AvgFloat64 << (S,Aquamarine) >> {
+        - sum float64
+        - count int64
+
+    }
+    class partialResult4CountDistinctDecimal << (S,Aquamarine) >> {
+        - valSet set.StringSet
+
+    }
+    class partialResult4CountDistinctDuration << (S,Aquamarine) >> {
+        - valSet set.Int64Set
+
+    }
+    class partialResult4CountDistinctInt << (S,Aquamarine) >> {
+        - valSet set.Int64Set
+
+    }
+    class partialResult4CountDistinctReal << (S,Aquamarine) >> {
+        - valSet set.Float64Set
+
+    }
+    class partialResult4CountDistinctString << (S,Aquamarine) >> {
+        - valSet set.StringSet
+
+    }
+    class partialResult4CountWithDistinct << (S,Aquamarine) >> {
+        - valSet set.StringSet
+
+    }
+    class partialResult4CumeDist << (S,Aquamarine) >> {
+        - curIdx int
+        - lastRank int
+        - rows []chunk.Row
+
+    }
+    class partialResult4FirstRowDecimal << (S,Aquamarine) >> {
+        - val types.MyDecimal
+
+    }
+    class partialResult4FirstRowDuration << (S,Aquamarine) >> {
+        - val types.Duration
+
+    }
+    class partialResult4FirstRowEnum << (S,Aquamarine) >> {
+        - val types.Enum
+
+    }
+    class partialResult4FirstRowFloat32 << (S,Aquamarine) >> {
+        - val float32
+
+    }
+    class partialResult4FirstRowFloat64 << (S,Aquamarine) >> {
+        - val float64
+
+    }
+    class partialResult4FirstRowInt << (S,Aquamarine) >> {
+        - val int64
+
+    }
+    class partialResult4FirstRowJSON << (S,Aquamarine) >> {
+        - val json.BinaryJSON
+
+    }
+    class partialResult4FirstRowSet << (S,Aquamarine) >> {
+        - val types.Set
+
+    }
+    class partialResult4FirstRowString << (S,Aquamarine) >> {
+        - val string
+
+    }
+    class partialResult4FirstRowTime << (S,Aquamarine) >> {
+        - val types.Time
+
+    }
+    class partialResult4FirstValue << (S,Aquamarine) >> {
+        - gotFirstValue bool
+        - evaluator valueEvaluator
+
+    }
+    class partialResult4GroupConcat << (S,Aquamarine) >> {
+    }
+    class partialResult4GroupConcatDistinct << (S,Aquamarine) >> {
+        - valSet set.StringSet
+        - encodeBytesBuffer []byte
+
+    }
+    class partialResult4GroupConcatOrder << (S,Aquamarine) >> {
+        - topN *topNRows
+
+    }
+    class partialResult4GroupConcatOrderDistinct << (S,Aquamarine) >> {
+        - topN *topNRows
+        - valSet set.StringSet
+        - encodeBytesBuffer []byte
+
+    }
+    class partialResult4JsonObjectAgg << (S,Aquamarine) >> {
+        - entries <font color=blue>map</font>[string]<font color=blue>interface</font>{}
+
+    }
+    class partialResult4LastValue << (S,Aquamarine) >> {
+        - gotLastValue bool
+        - evaluator valueEvaluator
+
+    }
+    class partialResult4LeadLag << (S,Aquamarine) >> {
+        - rows []chunk.Row
+        - curIdx uint64
+
+    }
+    class partialResult4MaxMinDecimal << (S,Aquamarine) >> {
+        - val types.MyDecimal
+        - isNull bool
+
+    }
+    class partialResult4MaxMinDuration << (S,Aquamarine) >> {
+        - val types.Duration
+        - isNull bool
+
+    }
+    class partialResult4MaxMinFloat32 << (S,Aquamarine) >> {
+        - val float32
+        - isNull bool
+
+    }
+    class partialResult4MaxMinFloat64 << (S,Aquamarine) >> {
+        - val float64
+        - isNull bool
+
+    }
+    class partialResult4MaxMinInt << (S,Aquamarine) >> {
+        - val int64
+        - isNull bool
+
+    }
+    class partialResult4MaxMinJSON << (S,Aquamarine) >> {
+        - val json.BinaryJSON
+        - isNull bool
+
+    }
+    class partialResult4MaxMinString << (S,Aquamarine) >> {
+        - val string
+        - isNull bool
+
+    }
+    class partialResult4MaxMinUint << (S,Aquamarine) >> {
+        - val uint64
+        - isNull bool
+
+    }
+    class partialResult4NthValue << (S,Aquamarine) >> {
+        - seenRows uint64
+        - evaluator valueEvaluator
+
+    }
+    class partialResult4Ntile << (S,Aquamarine) >> {
+        - curIdx uint64
+        - curGroupIdx uint64
+        - remainder uint64
+        - quotient uint64
+        - numRows uint64
+
+    }
+    class partialResult4Rank << (S,Aquamarine) >> {
+        - curIdx int64
+        - lastRank int64
+        - rows []chunk.Row
+
+    }
+    class partialResult4RowNumber << (S,Aquamarine) >> {
+        - curIdx int64
+
+    }
+    class partialResult4SumDecimal << (S,Aquamarine) >> {
+        - val types.MyDecimal
+        - notNullRowCount int64
+
+    }
+    class partialResult4SumDistinctDecimal << (S,Aquamarine) >> {
+        - val types.MyDecimal
+        - isNull bool
+        - valSet set.StringSet
+
+    }
+    class partialResult4SumDistinctFloat64 << (S,Aquamarine) >> {
+        - val float64
+        - isNull bool
+        - valSet set.Float64Set
+
+    }
+    class partialResult4SumFloat64 << (S,Aquamarine) >> {
+        - val float64
+        - notNullRowCount int64
+
+    }
+    class partialResult4Time << (S,Aquamarine) >> {
+        - val types.Time
+        - isNull bool
+
+    }
+    class partialResult4VarPopDistinctFloat64 << (S,Aquamarine) >> {
+        - count int64
+        - sum float64
+        - variance float64
+        - valSet set.Float64Set
+
+    }
+    class partialResult4VarPopFloat64 << (S,Aquamarine) >> {
+        - count int64
+        - sum float64
+        - variance float64
+
+    }
+    class percentRank << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(partial PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, partial PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, partial PartialResult, chk *chunk.Chunk) error
+
+    }
+    class rank << (S,Aquamarine) >> {
+        - isDense bool
+
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class rowComparer << (S,Aquamarine) >> {
+        - cmpFuncs []chunk.CompareFunc
+        - colIdx []int
+
+        - compareRows(prev chunk.Row, curr chunk.Row) int
+
+    }
+    class rowNumber << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class sortRow << (S,Aquamarine) >> {
+        - buffer *bytes.Buffer
+        - byItems []*types.Datum
+
+    }
+    class sum4Decimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class sum4DistinctDecimal << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class sum4DistinctFloat64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+
+    }
+    class sum4Float64 << (S,Aquamarine) >> {
+        + Slide(sctx sessionctx.Context, rows []chunk.Row, lastStart uint64, lastEnd uint64, shiftStart uint64, shiftEnd uint64, pr PartialResult) error
+
+    }
+    class sum4Float64HighPrecision << (S,Aquamarine) >> {
+    }
+    class topNRows << (S,Aquamarine) >> {
+        - rows []sortRow
+        - desc []bool
+        - sctx sessionctx.Context
+        - err error
+        - currSize uint64
+        - limitSize uint64
+        - sepSize uint64
+
+        - tryToAdd(row sortRow) bool
+        - reset() 
+        - concat(sep string, truncated bool) string
+
+        + Len() int
+        + Less(i int, j int) bool
+        + Swap(i int, j int) 
+        + Push(x <font color=blue>interface</font>{}) 
+        + Pop() <font color=blue>interface</font>{}
+
+    }
+    class value4Decimal << (S,Aquamarine) >> {
+        - val *types.MyDecimal
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4Duration << (S,Aquamarine) >> {
+        - val types.Duration
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4Float32 << (S,Aquamarine) >> {
+        - val float32
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4Float64 << (S,Aquamarine) >> {
+        - val float64
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4Int << (S,Aquamarine) >> {
+        - val int64
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4JSON << (S,Aquamarine) >> {
+        - val json.BinaryJSON
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4String << (S,Aquamarine) >> {
+        - val string
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class value4Time << (S,Aquamarine) >> {
+        - val types.Time
+        - isNull bool
+
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    interface valueEvaluator  {
+        - evaluateRow(ctx sessionctx.Context, expr expression.Expression, row chunk.Row) error
+        - appendResult(chk *chunk.Chunk, colIdx int) 
+
+    }
+    class varPop4DistinctFloat64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+
+    }
+    class varPop4Float64 << (S,Aquamarine) >> {
+        + AllocPartialResult() PartialResult
+        + ResetPartialResult(pr PartialResult) 
+        + AppendFinalResult2Chunk(sctx sessionctx.Context, pr PartialResult, chk *chunk.Chunk) error
+        + UpdatePartialResult(sctx sessionctx.Context, rowsInGroup []chunk.Row, pr PartialResult) error
+        + MergePartialResult(sctx sessionctx.Context, src PartialResult, dst PartialResult) error
+
+    }
+    class "unsafe.Pointer" as unsafePointer {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"aggfuncs.approxCountDistinctPartial2" *-- "aggfuncs.approxCountDistinctFinal"
+"aggfuncs.baseApproxCountDistinct" *-- "aggfuncs.approxCountDistinctOriginal"
+"aggfuncs.approxCountDistinctOriginal" *-- "aggfuncs.approxCountDistinctPartial1"
+"aggfuncs.approxCountDistinctPartial1" *-- "aggfuncs.approxCountDistinctPartial2"
+"aggfuncs.baseAvgDecimal" *-- "aggfuncs.avgOriginal4Decimal"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.avgOriginal4DistinctDecimal"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.avgOriginal4DistinctFloat64"
+"aggfuncs.baseAvgFloat64" *-- "aggfuncs.avgOriginal4Float64"
+"aggfuncs.baseAvgDecimal" *-- "aggfuncs.avgPartial4Decimal"
+"aggfuncs.baseAvgFloat64" *-- "aggfuncs.avgPartial4Float64"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseApproxCountDistinct"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseAvgDecimal"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseAvgFloat64"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseBitAggFunc"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseCount"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseGroupConcat4String"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseLeadLag"
+"aggfuncs.valueEvaluator" *-- "aggfuncs.baseLeadLag"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseMaxMinAggFunc"
+"aggfuncs.baseSumAggFunc" *-- "aggfuncs.baseSum4Float64"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseSumAggFunc"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.baseVarPopAggFunc"
+"aggfuncs.baseBitAggFunc" *-- "aggfuncs.bitAndUint64"
+"aggfuncs.baseBitAggFunc" *-- "aggfuncs.bitOrUint64"
+"aggfuncs.baseBitAggFunc" *-- "aggfuncs.bitXorUint64"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4Decimal"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4Duration"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4Int"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4JSON"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4Real"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4String"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginal4Time"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct4Decimal"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct4Duration"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct4Int"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct4Real"
+"aggfuncs.baseCount" *-- "aggfuncs.countOriginalWithDistinct4String"
+"aggfuncs.baseCount" *-- "aggfuncs.countPartial"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.cumeDist"
+"aggfuncs.rowComparer" *-- "aggfuncs.cumeDist"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Decimal"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Duration"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Enum"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Float32"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Float64"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Int"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4JSON"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Set"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4String"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstRow4Time"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.firstValue"
+"aggfuncs.baseGroupConcat4String" *-- "aggfuncs.groupConcat"
+"aggfuncs.baseGroupConcat4String" *-- "aggfuncs.groupConcatDistinct"
+"aggfuncs.baseGroupConcat4String" *-- "aggfuncs.groupConcatDistinctOrder"
+"aggfuncs.baseGroupConcat4String" *-- "aggfuncs.groupConcatOrder"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.jsonObjectAgg"
+"aggfuncs.baseLeadLag" *-- "aggfuncs.lag"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.lastValue"
+"aggfuncs.baseLeadLag" *-- "aggfuncs.lead"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Decimal"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Duration"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Float32"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Float64"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Int"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4JSON"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4String"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Time"
+"aggfuncs.baseMaxMinAggFunc" *-- "aggfuncs.maxMin4Uint"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.nthValue"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.ntile"
+"aggfuncs.partialResult4AvgDecimal" *-- "aggfuncs.partialResult4AvgDistinctDecimal"
+"aggfuncs.partialResult4AvgFloat64" *-- "aggfuncs.partialResult4AvgDistinctFloat64"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowDecimal"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowDuration"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowEnum"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowFloat32"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowFloat64"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowInt"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowJSON"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowSet"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowString"
+"aggfuncs.basePartialResult4FirstRow" *-- "aggfuncs.partialResult4FirstRowTime"
+"aggfuncs.basePartialResult4GroupConcat" *-- "aggfuncs.partialResult4GroupConcat"
+"aggfuncs.basePartialResult4GroupConcat" *-- "aggfuncs.partialResult4GroupConcatDistinct"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.percentRank"
+"aggfuncs.rowComparer" *-- "aggfuncs.percentRank"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.rank"
+"aggfuncs.rowComparer" *-- "aggfuncs.rank"
+"aggfuncs.baseAggFunc" *-- "aggfuncs.rowNumber"
+"aggfuncs.baseSumAggFunc" *-- "aggfuncs.sum4Decimal"
+"aggfuncs.baseSumAggFunc" *-- "aggfuncs.sum4DistinctDecimal"
+"aggfuncs.baseSumAggFunc" *-- "aggfuncs.sum4DistinctFloat64"
+"aggfuncs.baseSum4Float64" *-- "aggfuncs.sum4Float64"
+"aggfuncs.baseSum4Float64" *-- "aggfuncs.sum4Float64HighPrecision"
+"aggfuncs.baseVarPopAggFunc" *-- "aggfuncs.varPop4DistinctFloat64"
+"aggfuncs.baseVarPopAggFunc" *-- "aggfuncs.varPop4Float64"
+
+"aggfuncs.AggFunc" <|-- "aggfuncs.baseSum4Float64"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4Decimal"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4Duration"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4Int"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4JSON"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4Real"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4String"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.countOriginal4Time"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Decimal"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Duration"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Enum"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Float32"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Float64"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Int"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4JSON"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Set"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4String"
+"aggfuncs.AggFunc" <|-- "aggfuncs.firstRow4Time"
+"aggfuncs.AggFunc" <|-- "aggfuncs.groupConcatDistinctOrder"
+"aggfuncs.AggFunc" <|-- "aggfuncs.groupConcatOrder"
+"aggfuncs.AggFunc" <|-- "aggfuncs.jsonObjectAgg"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Decimal"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Duration"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Float32"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Float64"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Int"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4JSON"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4String"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Time"
+"aggfuncs.AggFunc" <|-- "aggfuncs.maxMin4Uint"
+"aggfuncs.AggFunc" <|-- "aggfuncs.sum4Decimal"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.sum4Decimal"
+"aggfuncs.SlidingWindowAggFunc" <|-- "aggfuncs.sum4Float64"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Decimal"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Duration"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Float32"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Float64"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Int"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4JSON"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4String"
+"aggfuncs.valueEvaluator" <|-- "aggfuncs.value4Time"
+"aggfuncs.AggFunc" <|-- "aggfuncs.varPop4Float64"
+
+namespace executor {
+    class AdminPluginsExec << (S,Aquamarine) >> {
+        + Action core.AdminPluginsAction
+        + Plugins []string
+
+        - changeDisableFlagAndFlush(disabled bool) error
+
+        + Next(ctx context.Context, _ *chunk.Chunk) error
+
+    }
+    class AdminResetTelemetryIDExec << (S,Aquamarine) >> {
+        - done bool
+
+        + Next(ctx context.Context, _ *chunk.Chunk) error
+
+    }
+    class AdminShowTelemetryExec << (S,Aquamarine) >> {
+        - done bool
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class AfFinalResult << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - err error
+        - giveBackCh <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class AnalyzeColumnsExec << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - physicalTableID int64
+        - colsInfo []*model.ColumnInfo
+        - pkInfo *model.ColumnInfo
+        - concurrency int
+        - priority int
+        - analyzePB *tipb.AnalyzeReq
+        - resultHandler *tableResultHandler
+        - opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64
+        - job *statistics.AnalyzeJob
+
+        - open(ranges []*ranger.Range) error
+        - buildResp(ranges []*ranger.Range) (distsql.SelectResult, error)
+        - buildStats(ranges []*ranger.Range) ([]*statistics.Histogram, []*statistics.CMSketch, error)
+
+    }
+    class AnalyzeExec << (S,Aquamarine) >> {
+        - tasks []*analyzeTask
+        - wg *sync.WaitGroup
+
+        - analyzeWorker(taskCh <font color=blue>chan</font> *analyzeTask, resultCh <font color=blue>chan</font> analyzeResult, isCloseChanThread bool) 
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class AnalyzeFastExec << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - physicalTableID int64
+        - pkInfo *model.ColumnInfo
+        - colsInfo []*model.ColumnInfo
+        - idxsInfo []*model.IndexInfo
+        - concurrency int
+        - opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64
+        - tblInfo *model.TableInfo
+        - cache *tikv.RegionCache
+        - wg *sync.WaitGroup
+        - sampLocs <font color=blue>chan</font> *tikv.KeyLocation
+        - rowCount uint64
+        - sampCursor int32
+        - sampTasks []*AnalyzeFastTask
+        - scanTasks []*tikv.KeyLocation
+        - collectors []*statistics.SampleCollector
+        - randSeed int64
+        - job *statistics.AnalyzeJob
+
+        - getSampRegionsRowCount(bo *tikv.Backoffer, needRebuild *bool, err *error, sampTasks *[]*AnalyzeFastTask) 
+        - getNextSampleKey(bo *tikv.Backoffer, startKey kv.Key) (kv.Key, error)
+        - buildSampTask() (bool, error)
+        - decodeValues(sValue []byte) (<font color=blue>map</font>[int64]types.Datum, error)
+        - getValueByInfo(colInfo *model.ColumnInfo, values <font color=blue>map</font>[int64]types.Datum) (types.Datum, error)
+        - updateCollectorSamples(sValue []byte, sKey kv.Key, samplePos int32, hasPKInfo int) error
+        - handleBatchSeekResponse(kvMap <font color=blue>map</font>[string][]byte) error
+        - handleScanIter(iter kv.Iterator) (int, error)
+        - handleScanTasks(bo *tikv.Backoffer) (int, error)
+        - handleSampTasks(bo *tikv.Backoffer, workID int, err *error) 
+        - buildColumnStats(ID int64, collector *statistics.SampleCollector, tp *types.FieldType, rowCount int64) (*statistics.Histogram, *statistics.CMSketch, error)
+        - buildIndexStats(idxInfo *model.IndexInfo, collector *statistics.SampleCollector, rowCount int64) (*statistics.Histogram, *statistics.CMSketch, error)
+        - runTasks() ([]*statistics.Histogram, []*statistics.CMSketch, error)
+        - buildStats() ([]*statistics.Histogram, []*statistics.CMSketch, error)
+
+    }
+    class AnalyzeFastTask << (S,Aquamarine) >> {
+        + Location *tikv.KeyLocation
+        + SampSize uint64
+        + BeginOffset uint64
+        + EndOffset uint64
+
+    }
+    class AnalyzeIndexExec << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - physicalTableID int64
+        - idxInfo *model.IndexInfo
+        - concurrency int
+        - priority int
+        - analyzePB *tipb.AnalyzeReq
+        - result distsql.SelectResult
+        - countNullRes distsql.SelectResult
+        - opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64
+        - job *statistics.AnalyzeJob
+
+        - fetchAnalyzeResult(ranges []*ranger.Range, isNullRange bool) error
+        - open(ranges []*ranger.Range, considerNull bool) error
+        - buildStatsFromResult(result distsql.SelectResult, needCMS bool) (*statistics.Histogram, *statistics.CMSketch, error)
+        - buildStats(ranges []*ranger.Range, considerNull bool) (*statistics.Histogram, *statistics.CMSketch, error)
+
+    }
+    class AnalyzeTestFastExec << (S,Aquamarine) >> {
+        + Ctx sessionctx.Context
+        + PhysicalTableID int64
+        + PKInfo *model.ColumnInfo
+        + ColsInfo []*model.ColumnInfo
+        + IdxsInfo []*model.IndexInfo
+        + Concurrency int
+        + Collectors []*statistics.SampleCollector
+        + TblInfo *model.TableInfo
+        + Opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64
+
+        + TestFastSample() error
+
+    }
+    class BRIEExec << (S,Aquamarine) >> {
+        - backupCfg *task.BackupConfig
+        - restoreCfg *task.RestoreConfig
+        - info *brieTaskInfo
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class BatchPointGetExec << (S,Aquamarine) >> {
+        - tblInfo *model.TableInfo
+        - idxInfo *model.IndexInfo
+        - handles []int64
+        - physIDs []int64
+        - partPos int
+        - idxVals [][]types.Datum
+        - startTS uint64
+        - snapshotTS uint64
+        - txn kv.Transaction
+        - lock bool
+        - waitTime int64
+        - inited bool
+        - values [][]byte
+        - index int
+        - rowDecoder *rowcodec.ChunkDecoder
+        - keepOrder bool
+        - desc bool
+        - columns []*model.ColumnInfo
+        - virtualColumnIndex []int
+        - virtualColumnRetFieldTypes []*types.FieldType
+
+        - buildVirtualColumnInfo() 
+        - initialize(ctx context.Context) error
+        - lockKeys(ctx context.Context, keys []kv.Key) error
+
+        + Open( context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class CancelDDLJobsExec << (S,Aquamarine) >> {
+        - cursor int
+        - jobIDs []int64
+        - errs []error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ChangeExec << (S,Aquamarine) >> {
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class CheckIndexRangeExec << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - index *model.IndexInfo
+        - is infoschema.InfoSchema
+        - startKey []types.Datum
+        - handleRanges []ast.HandleRange
+        - srcChunk *chunk.Chunk
+        - result distsql.SelectResult
+        - cols []*model.ColumnInfo
+
+        - buildDAGPB() (*tipb.DAGRequest, error)
+        - constructIndexScanPB() *tipb.Executor
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Open(ctx context.Context) error
+        + Close() error
+
+    }
+    class CheckTableExec << (S,Aquamarine) >> {
+        - dbName string
+        - table table.Table
+        - indexInfos []*model.IndexInfo
+        - srcs []*IndexLookUpExecutor
+        - done bool
+        - is infoschema.InfoSchema
+        - exitCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - retCh <font color=blue>chan</font> error
+        - checkIndex bool
+
+        - checkTableIndexHandle(ctx context.Context, idxInfo *model.IndexInfo) error
+        - checkIndexHandle(ctx context.Context, src *IndexLookUpExecutor) error
+        - handlePanic(r <font color=blue>interface</font>{}) 
+        - checkTableRecord(idxOffset int) error
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ChecksumTableExec << (S,Aquamarine) >> {
+        - tables <font color=blue>map</font>[int64]*checksumContext
+        - done bool
+
+        - buildTasks() ([]*checksumTask, error)
+        - handleResult(result *checksumResult) 
+        - checksumWorker(taskCh <font color=blue>chan</font> *checksumTask, resultCh <font color=blue>chan</font> *checksumResult) 
+        - handleChecksumRequest(req *kv.Request) (*tipb.ChecksumResponse, error)
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class CleanupIndexExec << (S,Aquamarine) >> {
+        - done bool
+        - removeCnt uint64
+        - index table.Index
+        - table table.Table
+        - physicalID int64
+        - idxCols []*model.ColumnInfo
+        - idxColFieldTypes []*types.FieldType
+        - idxChunk *chunk.Chunk
+        - idxValues <font color=blue>map</font>[int64][][]types.Datum
+        - batchSize uint64
+        - batchKeys []kv.Key
+        - idxValsBufs [][]types.Datum
+        - lastIdxKey []byte
+        - scanRowCnt uint64
+
+        - getIdxColTypes() []*types.FieldType
+        - batchGetRecord(txn kv.Transaction) (<font color=blue>map</font>[string][]byte, error)
+        - deleteDanglingIdx(txn kv.Transaction, values <font color=blue>map</font>[string][]byte) error
+        - fetchIndex(ctx context.Context, txn kv.Transaction) error
+        - cleanTableIndex(ctx context.Context) error
+        - buildIndexScan(ctx context.Context, txn kv.Transaction) (distsql.SelectResult, error)
+        - init() error
+        - buildIdxDAGPB(txn kv.Transaction) (*tipb.DAGRequest, error)
+        - constructIndexScanPB() *tipb.Executor
+        - constructLimitPB() *tipb.Executor
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Open(ctx context.Context) error
+        + Close() error
+
+    }
+    interface Closeable  {
+        + Close() error
+
+    }
+    class CommitTask << (S,Aquamarine) >> {
+        - cnt uint64
+        - rows [][]types.Datum
+
+    }
+    class Compiler << (S,Aquamarine) >> {
+        + Ctx sessionctx.Context
+
+        + Compile(ctx context.Context, stmtNode ast.StmtNode) (*ExecStmt, error)
+
+    }
+    class CoprocessorDAGHandler << (S,Aquamarine) >> {
+        - sctx sessionctx.Context
+        - dagReq *tipb.DAGRequest
+
+        - buildResponseAndSendToStream(chk *chunk.Chunk, tps []*types.FieldType, stream tikvpb.Tikv_CoprocessorStreamServer) error
+        - buildDAGExecutor(req *coprocessor.Request) (Executor, error)
+        - buildChunk(chk *chunk.Chunk, tps []*types.FieldType) ([]tipb.Chunk, error)
+        - buildUnaryResponse(chunks []tipb.Chunk) *coprocessor.Response
+        - buildStreamResponse(chunk *tipb.Chunk) *coprocessor.Response
+        - buildErrorResponse(err error) *coprocessor.Response
+        - encodeChunk(chk *chunk.Chunk, colTypes []*types.FieldType) ([]tipb.Chunk, error)
+        - encodeDefault(chk *chunk.Chunk, tps []*types.FieldType) ([]tipb.Chunk, error)
+        - appendRow(chunks []tipb.Chunk, data []byte, rowCnt int) []tipb.Chunk
+
+        + HandleRequest(ctx context.Context, req *coprocessor.Request) *coprocessor.Response
+        + HandleStreamRequest(ctx context.Context, req *coprocessor.Request, stream tikvpb.Tikv_CoprocessorStreamServer) error
+
+    }
+    class DDLExec << (S,Aquamarine) >> {
+        - stmt ast.StmtNode
+        - is infoschema.InfoSchema
+        - done bool
+
+        - toErr(err error) error
+        - executeTruncateTable(s *ast.TruncateTableStmt) error
+        - executeRenameTable(s *ast.RenameTableStmt) error
+        - executeCreateDatabase(s *ast.CreateDatabaseStmt) error
+        - executeAlterDatabase(s *ast.AlterDatabaseStmt) error
+        - executeCreateTable(s *ast.CreateTableStmt) error
+        - executeCreateView(s *ast.CreateViewStmt) error
+        - executeCreateIndex(s *ast.CreateIndexStmt) error
+        - executeDropDatabase(s *ast.DropDatabaseStmt) error
+        - executeDropTable(s *ast.DropTableStmt) error
+        - executeDropView(s *ast.DropTableStmt) error
+        - executeDropSequence(s *ast.DropSequenceStmt) error
+        - dropTableObject(objects []*ast.TableName, obt objectType, ifExists bool) error
+        - executeDropIndex(s *ast.DropIndexStmt) error
+        - executeAlterTable(s *ast.AlterTableStmt) error
+        - executeRecoverTable(s *ast.RecoverTableStmt) error
+        - getTableAutoIDsFromSnapshot(job *model.Job) (int64, error)
+        - getRecoverTableByJobID(s *ast.RecoverTableStmt, t *meta.Meta, dom *domain.Domain) (*model.Job, *model.TableInfo, error)
+        - getRecoverTableByTableName(tableName *ast.TableName) (*model.Job, *model.TableInfo, error)
+        - executeFlashbackTable(s *ast.FlashBackTableStmt) error
+        - executeLockTables(s *ast.LockTablesStmt) error
+        - executeUnlockTables(s *ast.UnlockTablesStmt) error
+        - executeCleanupTableLock(s *ast.CleanupTableLockStmt) error
+        - executeRepairTable(s *ast.RepairTableStmt) error
+        - executeCreateSequence(s *ast.CreateSequenceStmt) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class DDLJobRetriever << (S,Aquamarine) >> {
+        - runningJobs []*model.Job
+        - historyJobIter *meta.LastJobIterator
+        - cursor int
+        - is infoschema.InfoSchema
+        - activeRoles []*auth.RoleIdentity
+        - cacheJobs []*model.Job
+
+        - initial(txn kv.Transaction) error
+        - appendJobToChunk(req *chunk.Chunk, job *model.Job, checker privilege.Manager) 
+
+    }
+    class DDLJobsReaderExec << (S,Aquamarine) >> {
+        - cacheJobs []*model.Job
+        - is infoschema.InfoSchema
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class DeallocateExec << (S,Aquamarine) >> {
+        + Name string
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class DeleteExec << (S,Aquamarine) >> {
+        - tblID2Table <font color=blue>map</font>[int64]table.Table
+        - tblColPosInfos core.TblColPosInfoSlice
+        - memTracker *memory.Tracker
+
+        + IsMultiTable bool
+
+        - deleteOneRow(tbl table.Table, handleIndex int, isExtraHandle bool, row []types.Datum) error
+        - deleteSingleTableByChunk(ctx context.Context) error
+        - composeTblRowMap(tblRowMap tableRowMapType, colPosInfos []core.TblColPosInfo, joinedRow []types.Datum) 
+        - deleteMultiTablesByChunk(ctx context.Context) error
+        - removeRowsInTblRowMap(tblRowMap tableRowMapType) error
+        - removeRow(ctx sessionctx.Context, t table.Table, h int64, data []types.Datum) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class DirtyDB << (S,Aquamarine) >> {
+        - tables <font color=blue>map</font>[int64]*DirtyTable
+
+        + GetDirtyTable(tid int64) *DirtyTable
+
+    }
+    class DirtyTable << (S,Aquamarine) >> {
+        - tid int64
+        - addedRows <font color=blue>map</font>[int64]<font color=blue>struct</font>{}
+        - deletedRows <font color=blue>map</font>[int64]<font color=blue>struct</font>{}
+
+        + AddRow(handle int64) 
+        + DeleteRow(handle int64) 
+        + IsEmpty() bool
+
+    }
+    class ExecStmt << (S,Aquamarine) >> {
+        - isPreparedStmt bool
+        - isSelectForUpdate bool
+        - retryCount uint
+
+        + InfoSchema infoschema.InfoSchema
+        + Plan core.Plan
+        + Text string
+        + StmtNode ast.StmtNode
+        + Ctx sessionctx.Context
+        + LowerPriority bool
+        + OutputNames []*types.FieldName
+        + PsStmt *core.CachedPrepareStmt
+
+        - handleNoDelay(ctx context.Context, e Executor, isPessimistic bool) (bool, sqlexec.RecordSet, error)
+        - handlePessimisticSelectForUpdate(ctx context.Context, e Executor) (sqlexec.RecordSet, error)
+        - runPessimisticSelectForUpdate(ctx context.Context, e Executor) (sqlexec.RecordSet, error)
+        - handleNoDelayExecutor(ctx context.Context, e Executor) (sqlexec.RecordSet, error)
+        - handlePessimisticDML(ctx context.Context, e Executor) error
+        - handlePessimisticLockError(ctx context.Context, err error) (Executor, error)
+        - buildExecutor() (Executor, error)
+        - logAudit() 
+
+        + PointGet(ctx context.Context, is infoschema.InfoSchema) (*recordSet, error)
+        + OriginText() string
+        + IsPrepared() bool
+        + IsReadOnly(vars *variable.SessionVars) bool
+        + RebuildPlan(ctx context.Context) (int64, error)
+        + Exec(ctx context.Context) (sqlexec.RecordSet, error)
+        + CloseRecordSet(txnStartTS uint64, lastErr error) 
+        + FinishExecuteStmt(txnTS uint64, succ bool, hasMoreResults bool) 
+        + LogSlowQuery(txnTS uint64, succ bool, hasMoreResults bool) 
+        + SummaryStmt(succ bool) 
+
+    }
+    class ExecuteExec << (S,Aquamarine) >> {
+        - is infoschema.InfoSchema
+        - name string
+        - usingVars []expression.Expression
+        - stmtExec Executor
+        - stmt ast.StmtNode
+        - plan core.Plan
+        - id uint32
+        - lowerPriority bool
+        - outputNames []*types.FieldName
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Build(b *executorBuilder) error
+
+    }
+    interface Executor  {
+        - base() *baseExecutor
+
+        + Open( context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Schema() *expression.Schema
+
+    }
+    class ExplainExec << (S,Aquamarine) >> {
+        - explain *core.Explain
+        - analyzeExec Executor
+        - rows [][]string
+        - cursor int
+
+        - generateExplainInfo(ctx context.Context) ([][]string, error)
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class GrantExec << (S,Aquamarine) >> {
+        - is infoschema.InfoSchema
+        - done bool
+
+        + Privs []*ast.PrivElem
+        + ObjectType ast.ObjectTypeType
+        + Level *ast.GrantLevel
+        + Users []*ast.UserSpec
+        + TLSOptions []*ast.TLSOption
+        + WithGrant bool
+
+        - checkAndInitColumnPriv(user string, host string, cols []*ast.ColumnName, internalSession sessionctx.Context) error
+        - grantGlobalPriv(ctx sessionctx.Context, user *ast.UserSpec) error
+        - grantLevelPriv(priv *ast.PrivElem, user *ast.UserSpec, internalSession sessionctx.Context) error
+        - grantGlobalLevel(priv *ast.PrivElem, user *ast.UserSpec, internalSession sessionctx.Context) error
+        - grantDBLevel(priv *ast.PrivElem, user *ast.UserSpec, internalSession sessionctx.Context) error
+        - grantTableLevel(priv *ast.PrivElem, user *ast.UserSpec, internalSession sessionctx.Context) error
+        - grantColumnLevel(priv *ast.PrivElem, user *ast.UserSpec, internalSession sessionctx.Context) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class HashAggExec << (S,Aquamarine) >> {
+        - sc *stmtctx.StatementContext
+        - partialResultMap aggPartialResultMapper
+        - groupSet set.StringSet
+        - groupKeys []string
+        - cursor4GroupKey int
+        - groupKeyBuffer [][]byte
+        - finishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - finalOutputCh <font color=blue>chan</font> *AfFinalResult
+        - partialOutputChs []<font color=blue>chan</font> *HashAggIntermData
+        - inputCh <font color=blue>chan</font> *HashAggInput
+        - partialInputChs []<font color=blue>chan</font> *chunk.Chunk
+        - partialWorkers []HashAggPartialWorker
+        - finalWorkers []HashAggFinalWorker
+        - defaultVal *chunk.Chunk
+        - childResult *chunk.Chunk
+        - isChildReturnEmpty bool
+        - isUnparallelExec bool
+        - prepared bool
+        - executed bool
+        - memTracker *memory.Tracker
+
+        + PartialAggFuncs []aggfuncs.AggFunc
+        + FinalAggFuncs []aggfuncs.AggFunc
+        + GroupByItems []expression.Expression
+
+        - initForUnparallelExec() 
+        - initForParallelExec(ctx sessionctx.Context) 
+        - fetchChildData(ctx context.Context) 
+        - waitPartialWorkerAndCloseOutputChs(waitGroup *sync.WaitGroup) 
+        - waitFinalWorkerAndCloseFinalOutput(waitGroup *sync.WaitGroup) 
+        - prepare4ParallelExec(ctx context.Context) 
+        - parallelExec(ctx context.Context, chk *chunk.Chunk) error
+        - unparallelExec(ctx context.Context, chk *chunk.Chunk) error
+        - execute(ctx context.Context) error
+        - getPartialResults(groupKey string) []aggfuncs.PartialResult
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class HashAggFinalWorker << (S,Aquamarine) >> {
+        - rowBuffer []types.Datum
+        - mutableRow chunk.MutRow
+        - partialResultMap aggPartialResultMapper
+        - groupSet set.StringSet
+        - inputCh <font color=blue>chan</font> *HashAggIntermData
+        - outputCh <font color=blue>chan</font> *AfFinalResult
+        - finalResultHolderCh <font color=blue>chan</font> *chunk.Chunk
+        - groupKeys [][]byte
+
+        - getPartialInput() (*HashAggIntermData, bool)
+        - consumeIntermData(sctx sessionctx.Context) error
+        - getFinalResult(sctx sessionctx.Context) 
+        - receiveFinalResultHolder() (*chunk.Chunk, bool)
+        - run(ctx sessionctx.Context, waitGroup *sync.WaitGroup) 
+
+    }
+    class HashAggInput << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - giveBackCh <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class HashAggIntermData << (S,Aquamarine) >> {
+        - groupKeys []string
+        - cursor int
+        - partialResultMap aggPartialResultMapper
+
+        - getPartialResultBatch(sc *stmtctx.StatementContext, prs [][]aggfuncs.PartialResult, aggFuncs []aggfuncs.AggFunc, maxChunkSize int) ([][]aggfuncs.PartialResult, []string, bool)
+
+    }
+    class HashAggPartialWorker << (S,Aquamarine) >> {
+        - inputCh <font color=blue>chan</font> *chunk.Chunk
+        - outputChs []<font color=blue>chan</font> *HashAggIntermData
+        - globalOutputCh <font color=blue>chan</font> *AfFinalResult
+        - giveBackCh <font color=blue>chan</font> *HashAggInput
+        - partialResultsMap aggPartialResultMapper
+        - groupByItems []expression.Expression
+        - groupKey [][]byte
+        - chk *chunk.Chunk
+        - memTracker *memory.Tracker
+
+        - getChildInput() bool
+        - run(ctx sessionctx.Context, waitGroup *sync.WaitGroup, finalConcurrency int) 
+        - updatePartialResult(ctx sessionctx.Context, sc *stmtctx.StatementContext, chk *chunk.Chunk, finalConcurrency int) error
+        - shuffleIntermData(sc *stmtctx.StatementContext, finalConcurrency int) 
+
+    }
+    class HashJoinExec << (S,Aquamarine) >> {
+        - probeSideExec Executor
+        - buildSideExec Executor
+        - buildSideEstCount float64
+        - outerFilter expression.CNFExprs
+        - probeKeys []*expression.Column
+        - buildKeys []*expression.Column
+        - probeTypes []*types.FieldType
+        - buildTypes []*types.FieldType
+        - concurrency uint
+        - rowContainer *hashRowContainer
+        - buildFinished <font color=blue>chan</font> error
+        - closeCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - joinType core.JoinType
+        - requiredRows int64
+        - joiners []joiner
+        - probeChkResourceCh <font color=blue>chan</font> *probeChkResource
+        - probeResultChs []<font color=blue>chan</font> *chunk.Chunk
+        - joinChkResourceCh []<font color=blue>chan</font> *chunk.Chunk
+        - joinResultCh <font color=blue>chan</font> *hashjoinWorkerResult
+        - memTracker *memory.Tracker
+        - diskTracker *disk.Tracker
+        - outerMatchedStatus []*bitmap.ConcurrentBitmap
+        - useOuterToBuild bool
+        - prepared bool
+        - isOuterJoin bool
+        - joinWorkerWaitGroup sync.WaitGroup
+        - finished atomic.Value
+
+        - fetchProbeSideChunks(ctx context.Context) 
+        - wait4BuildSide() (bool, error)
+        - fetchBuildSideRows(ctx context.Context, chkCh <font color=blue>chan</font> *chunk.Chunk, doneCh <font color=blue>chan</font> <font color=blue>struct</font>{}) 
+        - initializeForProbe() 
+        - fetchAndProbeHashTable(ctx context.Context) 
+        - handleProbeSideFetcherPanic(r <font color=blue>interface</font>{}) 
+        - handleJoinWorkerPanic(r <font color=blue>interface</font>{}) 
+        - handleUnmatchedRowsFromHashTable(workerID uint) 
+        - waitJoinWorkersAndCloseResultChan() 
+        - runJoinWorker(workerID uint, probeKeyColIdx []int) 
+        - joinMatchedProbeSideRow2ChunkForOuterHashJoin(workerID uint, probeKey uint64, probeSideRow chunk.Row, hCtx *hashContext, joinResult *hashjoinWorkerResult) (bool, *hashjoinWorkerResult)
+        - joinMatchedProbeSideRow2Chunk(workerID uint, probeKey uint64, probeSideRow chunk.Row, hCtx *hashContext, joinResult *hashjoinWorkerResult) (bool, *hashjoinWorkerResult)
+        - getNewJoinResult(workerID uint) (bool, *hashjoinWorkerResult)
+        - join2Chunk(workerID uint, probeSideChk *chunk.Chunk, hCtx *hashContext, joinResult *hashjoinWorkerResult, selected []bool) (bool, *hashjoinWorkerResult)
+        - join2ChunkForOuterHashJoin(workerID uint, probeSideChk *chunk.Chunk, hCtx *hashContext, joinResult *hashjoinWorkerResult) (bool, *hashjoinWorkerResult)
+        - handleFetchAndBuildHashTablePanic(r <font color=blue>interface</font>{}) 
+        - fetchAndBuildHashTable(ctx context.Context) 
+        - buildHashTableForList(buildSideResultCh <font color=blue>chan</font> *chunk.Chunk) error
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class IndexAdvice << (S,Aquamarine) >> {
+    }
+    class IndexAdviseExec << (S,Aquamarine) >> {
+        - indexAdviseInfo *IndexAdviseInfo
+
+        + IsLocal bool
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class IndexAdviseInfo << (S,Aquamarine) >> {
+        + Path string
+        + MaxMinutes uint64
+        + MaxIndexNum *ast.MaxIndexNumClause
+        + LinesInfo *ast.LinesClause
+        + Ctx sessionctx.Context
+        + StmtNodes [][]ast.StmtNode
+        + Result *IndexAdvice
+
+        - getStmtNodes(data []byte) error
+        - prepareInfo(data []byte) error
+
+        + GetIndexAdvice(ctx context.Context, data []byte) error
+
+    }
+    class IndexAdviseVarKeyType << (S,Aquamarine) >> {
+        + String() string
+
+    }
+    class IndexLookUpExecutor << (S,Aquamarine) >> {
+        - table table.Table
+        - index *model.IndexInfo
+        - ranges []*ranger.Range
+        - dagPB *tipb.DAGRequest
+        - startTS uint64
+        - handleIdx int
+        - tableRequest *tipb.DAGRequest
+        - columns []*model.ColumnInfo
+        - idxWorkerWg sync.WaitGroup
+        - tblWorkerWg sync.WaitGroup
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - resultCh <font color=blue>chan</font> *lookupTableTask
+        - resultCurr *lookupTableTask
+        - feedback *statistics.QueryFeedback
+        - memTracker *memory.Tracker
+        - kvRanges []kv.KeyRange
+        - workerStarted bool
+        - keepOrder bool
+        - desc bool
+        - indexStreaming bool
+        - tableStreaming bool
+        - corColInIdxSide bool
+        - corColInTblSide bool
+        - corColInAccess bool
+        - idxPlans []core.PhysicalPlan
+        - tblPlans []core.PhysicalPlan
+        - idxCols []*expression.Column
+        - colLens []int
+
+        + PushedLimit *core.PushedDownLimit
+
+        - open(ctx context.Context) error
+        - startWorkers(ctx context.Context, initBatchSize int) error
+        - startIndexWorker(ctx context.Context, kvRanges []kv.KeyRange, workCh <font color=blue>chan</font> *lookupTableTask, initBatchSize int) error
+        - startTableWorker(ctx context.Context, workCh <font color=blue>chan</font> *lookupTableTask) 
+        - buildTableReader(ctx context.Context, handles []int64) (Executor, error)
+        - getResultTask() (*lookupTableTask, error)
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class IndexLookUpJoin << (S,Aquamarine) >> {
+        - resultCh <font color=blue>chan</font> *lookUpJoinTask
+        - cancelFunc context.CancelFunc
+        - workerWg *sync.WaitGroup
+        - outerCtx outerCtx
+        - innerCtx innerCtx
+        - task *lookUpJoinTask
+        - joinResult *chunk.Chunk
+        - innerIter chunk.Iterator
+        - joiner joiner
+        - isOuterJoin bool
+        - requiredRows int64
+        - indexRanges []*ranger.Range
+        - keyOff2IdxOff []int
+        - innerPtrBytes [][]byte
+        - lastColHelper *core.ColWithCmpFuncManager
+        - memTracker *memory.Tracker
+
+        - startWorkers(ctx context.Context) 
+        - newOuterWorker(resultCh <font color=blue>chan</font> *lookUpJoinTask, innerCh <font color=blue>chan</font> *lookUpJoinTask) *outerWorker
+        - newInnerWorker(taskCh <font color=blue>chan</font> *lookUpJoinTask) *innerWorker
+        - getFinishedTask(ctx context.Context) (*lookUpJoinTask, error)
+        - lookUpMatchedInners(task *lookUpJoinTask, rowPtr chunk.RowPtr) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class IndexLookUpMergeJoin << (S,Aquamarine) >> {
+        - resultCh <font color=blue>chan</font> *lookUpMergeJoinTask
+        - cancelFunc context.CancelFunc
+        - workerWg *sync.WaitGroup
+        - outerMergeCtx outerMergeCtx
+        - innerMergeCtx innerMergeCtx
+        - joiners []joiner
+        - joinChkResourceCh []<font color=blue>chan</font> *chunk.Chunk
+        - isOuterJoin bool
+        - requiredRows int64
+        - task *lookUpMergeJoinTask
+        - indexRanges []*ranger.Range
+        - keyOff2IdxOff []int
+        - lastColHelper *core.ColWithCmpFuncManager
+        - memTracker *memory.Tracker
+
+        - startWorkers(ctx context.Context) 
+        - newOuterWorker(resultCh <font color=blue>chan</font> *lookUpMergeJoinTask, innerCh <font color=blue>chan</font> *lookUpMergeJoinTask) *outerMergeWorker
+        - newInnerMergeWorker(taskCh <font color=blue>chan</font> *lookUpMergeJoinTask, workID int) *innerMergeWorker
+        - getFinishedTask(ctx context.Context) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class IndexMergeReaderExecutor << (S,Aquamarine) >> {
+        - table table.Table
+        - indexes []*model.IndexInfo
+        - descs []bool
+        - ranges [][]*ranger.Range
+        - dagPBs []*tipb.DAGRequest
+        - startTS uint64
+        - tableRequest *tipb.DAGRequest
+        - columns []*model.ColumnInfo
+        - partialStreamings []bool
+        - tableStreaming bool
+        - tblWorkerWg sync.WaitGroup
+        - processWokerWg sync.WaitGroup
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - workerStarted bool
+        - keyRanges [][]kv.KeyRange
+        - resultCh <font color=blue>chan</font> *lookupTableTask
+        - resultCurr *lookupTableTask
+        - feedbacks []*statistics.QueryFeedback
+        - memTracker *memory.Tracker
+        - corColInIdxSide bool
+        - partialPlans [][]core.PhysicalPlan
+        - corColInTblSide bool
+        - tblPlans []core.PhysicalPlan
+        - corColInAccess bool
+        - idxCols [][]*expression.Column
+        - colLens [][]int
+
+        - startWorkers(ctx context.Context) error
+        - waitPartialWorkersAndCloseFetchChan(partialWorkerWg *sync.WaitGroup, fetchCh <font color=blue>chan</font> *lookupTableTask) 
+        - startIndexMergeProcessWorker(ctx context.Context, workCh <font color=blue>chan</font> *lookupTableTask, fetch <font color=blue>chan</font> *lookupTableTask) 
+        - startPartialIndexWorker(ctx context.Context, exitCh <font color=blue>chan</font> <font color=blue>struct</font>{}, fetchCh <font color=blue>chan</font> *lookupTableTask, workID int, partialWorkerWg *sync.WaitGroup, keyRange []kv.KeyRange) error
+        - buildPartialTableReader(ctx context.Context, workID int) Executor
+        - startPartialTableWorker(ctx context.Context, exitCh <font color=blue>chan</font> <font color=blue>struct</font>{}, fetchCh <font color=blue>chan</font> *lookupTableTask, workID int, partialWorkerWg *sync.WaitGroup) error
+        - startIndexMergeTableScanWorker(ctx context.Context, workCh <font color=blue>chan</font> *lookupTableTask) 
+        - buildFinalTableReader(ctx context.Context, handles []int64) (Executor, error)
+        - getResultTask() (*lookupTableTask, error)
+        - handleHandlesFetcherPanic(ctx context.Context, resultCh <font color=blue>chan</font> *lookupTableTask, worker string) <font color=blue>func</font>(<font color=blue>interface</font>{}) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class IndexNestedLoopHashJoin << (S,Aquamarine) >> {
+        - resultCh <font color=blue>chan</font> *indexHashJoinResult
+        - joinChkResourceCh []<font color=blue>chan</font> *chunk.Chunk
+        - joiners []joiner
+        - keepOuterOrder bool
+        - curTask *indexHashJoinTask
+        - taskCh <font color=blue>chan</font> *indexHashJoinTask
+
+        - startWorkers(ctx context.Context) 
+        - finishJoinWorkers(r <font color=blue>interface</font>{}) 
+        - wait4JoinWorkers() 
+        - runInOrder(ctx context.Context, req *chunk.Chunk) error
+        - isDryUpTasks(ctx context.Context) bool
+        - newOuterWorker(innerCh <font color=blue>chan</font> *indexHashJoinTask) *indexHashJoinOuterWorker
+        - newInnerWorker(taskCh <font color=blue>chan</font> *indexHashJoinTask, workerID int) *indexHashJoinInnerWorker
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class IndexReaderExecutor << (S,Aquamarine) >> {
+        - table table.Table
+        - index *model.IndexInfo
+        - physicalTableID int64
+        - ranges []*ranger.Range
+        - kvRanges []kv.KeyRange
+        - dagPB *tipb.DAGRequest
+        - startTS uint64
+        - result distsql.SelectResult
+        - columns []*model.ColumnInfo
+        - outputColumns []*expression.Column
+        - feedback *statistics.QueryFeedback
+        - streaming bool
+        - keepOrder bool
+        - desc bool
+        - corColInFilter bool
+        - corColInAccess bool
+        - idxCols []*expression.Column
+        - colLens []int
+        - plans []core.PhysicalPlan
+        - memTracker *memory.Tracker
+
+        - open(ctx context.Context, kvRanges []kv.KeyRange) error
+
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Open(ctx context.Context) error
+
+    }
+    class InsertExec << (S,Aquamarine) >> {
+        - evalBuffer4Dup chunk.MutRow
+        - curInsertVals chunk.MutRow
+        - row4Update []types.Datum
+
+        + OnDuplicate []*expression.Assignment
+        + Priority mysql.PriorityEnum
+
+        - exec(ctx context.Context, rows [][]types.Datum) error
+        - updateDupRow(ctx context.Context, txn kv.Transaction, row toBeCheckedRow, handle int64, onDuplicate []*expression.Assignment) error
+        - batchUpdateDupRows(ctx context.Context, newRows [][]types.Datum) error
+        - initEvalBuffer4Dup() 
+        - doDupRowUpdate(ctx context.Context, handle int64, oldRow []types.Datum, newRow []types.Datum, cols []*expression.Assignment) ([]types.Datum, bool, int64, error)
+        - setMessage() 
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class InsertValues << (S,Aquamarine) >> {
+        - rowCount uint64
+        - curBatchCnt uint64
+        - maxRowsInBatch uint64
+        - lastInsertID uint64
+        - insertColumns []*table.Column
+        - colDefaultVals []defaultVal
+        - evalBuffer chunk.MutRow
+        - evalBufferTypes []*types.FieldType
+        - allAssignmentsAreConstant bool
+        - hasRefCols bool
+        - hasExtraHandle bool
+        - lazyFillAutoID bool
+        - memTracker *memory.Tracker
+
+        + SelectExec Executor
+        + Table table.Table
+        + Columns []*ast.ColumnName
+        + Lists [][]expression.Expression
+        + SetList []*expression.Assignment
+        + GenExprs []expression.Expression
+
+        - insertCommon() *InsertValues
+        - exec(_ context.Context, _ [][]types.Datum) error
+        - initInsertColumns() error
+        - initEvalBuffer() 
+        - lazilyInitColDefaultValBuf() bool
+        - processSetList() error
+        - handleErr(col *table.Column, val *types.Datum, rowIdx int, err error) error
+        - evalRow(ctx context.Context, list []expression.Expression, rowIdx int) ([]types.Datum, error)
+        - fastEvalRow(ctx context.Context, list []expression.Expression, rowIdx int) ([]types.Datum, error)
+        - setValueForRefColumn(row []types.Datum, hasValue []bool) error
+        - doBatchInsert(ctx context.Context) error
+        - getRow(ctx context.Context, vals []types.Datum) ([]types.Datum, error)
+        - getColDefaultValue(idx int, col *table.Column) (types.Datum, error)
+        - fillColValue(ctx context.Context, datum types.Datum, idx int, column *table.Column, hasValue bool) (types.Datum, error)
+        - fillRow(ctx context.Context, row []types.Datum, hasValue []bool) ([]types.Datum, error)
+        - isAutoNull(ctx context.Context, d types.Datum, col *table.Column) bool
+        - hasAutoIncrementColumn() (int, bool)
+        - lazyAdjustAutoIncrementDatumInRetry(ctx context.Context, rows [][]types.Datum, colIdx int) ([][]types.Datum, error)
+        - lazyAdjustAutoIncrementDatum(ctx context.Context, rows [][]types.Datum) ([][]types.Datum, error)
+        - adjustAutoIncrementDatum(ctx context.Context, d types.Datum, hasValue bool, c *table.Column) (types.Datum, error)
+        - adjustAutoRandomDatum(ctx context.Context, d types.Datum, hasValue bool, c *table.Column) (types.Datum, error)
+        - allocAutoRandomID(fieldType *types.FieldType) (int64, error)
+        - rebaseAutoRandomID(recordID int64, fieldType *types.FieldType) error
+        - handleWarning(err error) 
+        - batchCheckAndInsert(ctx context.Context, rows [][]types.Datum, addRecord <font color=blue>func</font>(context.Context, []types.Datum) (int64, error)) error
+        - addRecord(ctx context.Context, row []types.Datum) (int64, error)
+        - addRecordWithAutoIDHint(ctx context.Context, row []types.Datum, reserveAutoIDCount int) (int64, error)
+
+    }
+    class LimitExec << (S,Aquamarine) >> {
+        - begin uint64
+        - end uint64
+        - cursor uint64
+        - meetFirstBatch bool
+        - childResult *chunk.Chunk
+
+        - adjustRequiredRows(chk *chunk.Chunk) *chunk.Chunk
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Open(ctx context.Context) error
+        + Close() error
+
+    }
+    class LoadDataExec << (S,Aquamarine) >> {
+        - loadDataInfo *LoadDataInfo
+
+        + IsLocal bool
+        + OnDuplicate ast.OnDuplicateKeyHandlingType
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class LoadDataInfo << (S,Aquamarine) >> {
+        - row []types.Datum
+        - rows [][]types.Datum
+        - commitTaskQueue <font color=blue>chan</font> CommitTask
+
+        + Path string
+        + Table table.Table
+        + FieldsInfo *ast.FieldsClause
+        + LinesInfo *ast.LinesClause
+        + IgnoreLines uint64
+        + Ctx sessionctx.Context
+        + Drained bool
+        + StopCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        + QuitCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+
+        - getValidData(prevData []byte, curData []byte) ([]byte, []byte)
+        - getLine(prevData []byte, curData []byte) ([]byte, []byte, bool)
+        - colsToRow(ctx context.Context, cols []field) []types.Datum
+        - addRecordLD(ctx context.Context, row []types.Datum) (int64, error)
+        - getFieldsFromLine(line []byte) ([]field, error)
+
+        + GetRows() [][]types.Datum
+        + GetCurBatchCnt() uint64
+        + CloseTaskQueue() 
+        + InitQueues() 
+        + StartStopWatcher() 
+        + ForceQuit() 
+        + MakeCommitTask() CommitTask
+        + EnqOneTask(ctx context.Context) error
+        + CommitOneTask(ctx context.Context, task CommitTask) error
+        + CommitWork(ctx context.Context) error
+        + SetMaxRowsInBatch(limit uint64) 
+        + InsertData(ctx context.Context, prevData []byte, curData []byte) ([]byte, bool, error)
+        + CheckAndInsertOneBatch(ctx context.Context, rows [][]types.Datum, cnt uint64) error
+        + SetMessage() 
+
+    }
+    class LoadStatsExec << (S,Aquamarine) >> {
+        - info *LoadStatsInfo
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class LoadStatsInfo << (S,Aquamarine) >> {
+        + Path string
+        + Ctx sessionctx.Context
+
+        + Update(data []byte) error
+
+    }
+    class MaxOneRowExec << (S,Aquamarine) >> {
+        - evaluated bool
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class MemTableReaderExec << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - retriever memTableRetriever
+        - cacheRetrieved bool
+
+        - isInspectionCacheableTable(tblName string) bool
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class MergeJoinExec << (S,Aquamarine) >> {
+        - stmtCtx *stmtctx.StatementContext
+        - compareFuncs []expression.CompareFunc
+        - joiner joiner
+        - isOuterJoin bool
+        - desc bool
+        - innerTable *mergeJoinTable
+        - outerTable *mergeJoinTable
+        - hasMatch bool
+        - hasNull bool
+        - memTracker *memory.Tracker
+        - diskTracker *disk.Tracker
+
+        - compare(outerRow chunk.Row, innerRow chunk.Row) (int, error)
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class MetricRetriever << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - tblDef *infoschema.MetricTableDef
+        - extractor *core.MetricTableExtractor
+        - timeRange core.QueryTimeRange
+        - retrieved bool
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+        - queryMetric(ctx context.Context, sctx sessionctx.Context, queryRange v1.Range, quantile float64) (model.Value, error)
+        - getQueryRange(sctx sessionctx.Context) promQLQueryRange
+        - genRows(value model.Value, quantile float64) [][]types.Datum
+        - genRecord(metric model.Metric, pair model.SamplePair, quantile float64) []types.Datum
+
+    }
+    class MetricsSummaryByLabelRetriever << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - extractor *core.MetricSummaryTableExtractor
+        - timeRange core.QueryTimeRange
+        - retrieved bool
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    class MetricsSummaryRetriever << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - extractor *core.MetricSummaryTableExtractor
+        - timeRange core.QueryTimeRange
+        - retrieved bool
+
+        - retrieve(_ context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    interface MockPhysicalPlan  {
+        + GetExecutor() Executor
+
+    }
+    class NestedLoopApplyExec << (S,Aquamarine) >> {
+        - innerRows []chunk.Row
+        - cursor int
+        - innerExec Executor
+        - outerExec Executor
+        - innerFilter expression.CNFExprs
+        - outerFilter expression.CNFExprs
+        - joiner joiner
+        - outerSchema []*expression.CorrelatedColumn
+        - outerChunk *chunk.Chunk
+        - outerChunkCursor int
+        - outerSelected []bool
+        - innerList *chunk.List
+        - innerChunk *chunk.Chunk
+        - innerSelected []bool
+        - innerIter chunk.Iterator
+        - outerRow *chunk.Row
+        - hasMatch bool
+        - hasNull bool
+        - outer bool
+        - memTracker *memory.Tracker
+
+        - fetchSelectedOuterRow(ctx context.Context, chk *chunk.Chunk) (*chunk.Row, error)
+        - fetchAllInners(ctx context.Context) error
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class PessimisticLockCacheGetter << (S,Aquamarine) >> {
+        - txnCtx *variable.TransactionContext
+
+        + Get(_ context.Context, key kv.Key) ([]byte, error)
+
+    }
+    class PointGetExecutor << (S,Aquamarine) >> {
+        - tblInfo *model.TableInfo
+        - handle int64
+        - idxInfo *model.IndexInfo
+        - partInfo *model.PartitionDefinition
+        - idxKey kv.Key
+        - handleVal []byte
+        - idxVals []types.Datum
+        - startTS uint64
+        - txn kv.Transaction
+        - snapshot kv.Snapshot
+        - done bool
+        - lock bool
+        - lockWaitTime int64
+        - rowDecoder *rowcodec.ChunkDecoder
+        - columns []*model.ColumnInfo
+        - virtualColumnIndex []int
+        - virtualColumnRetFieldTypes []*types.FieldType
+
+        - buildVirtualColumnInfo() 
+        - getAndLock(ctx context.Context, key kv.Key) ([]byte, error)
+        - lockKeyIfNeeded(ctx context.Context, key []byte) error
+        - get(ctx context.Context, key kv.Key) ([]byte, error)
+
+        + Init(p *core.PointGetPlan, startTs uint64) 
+        + Open( context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class PrepareExec << (S,Aquamarine) >> {
+        - is infoschema.InfoSchema
+        - name string
+        - sqlText string
+
+        + ID uint32
+        + ParamCount int
+        + Fields []*ast.ResultField
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ProjectionExec << (S,Aquamarine) >> {
+        - evaluatorSuit *expression.EvaluatorSuite
+        - finishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - outputCh <font color=blue>chan</font> *projectionOutput
+        - fetcher projectionInputFetcher
+        - numWorkers int64
+        - workers []*projectionWorker
+        - childResult *chunk.Chunk
+        - parentReqRows int64
+        - memTracker *memory.Tracker
+        - wg sync.WaitGroup
+        - calculateNoDelay bool
+        - prepared bool
+
+        - open(ctx context.Context) error
+        - isUnparallelExec() bool
+        - unParallelExecute(ctx context.Context, chk *chunk.Chunk) error
+        - parallelExecute(ctx context.Context, chk *chunk.Chunk) error
+        - prepare(ctx context.Context) 
+        - drainInputCh(ch <font color=blue>chan</font> *projectionInput) 
+        - drainOutputCh(ch <font color=blue>chan</font> *projectionOutput) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class RecoverIndexExec << (S,Aquamarine) >> {
+        - done bool
+        - index table.Index
+        - table table.Table
+        - physicalID int64
+        - batchSize int
+        - columns []*model.ColumnInfo
+        - colFieldTypes []*types.FieldType
+        - srcChunk *chunk.Chunk
+        - recoverRows []recoverRows
+        - idxValsBufs [][]types.Datum
+        - idxKeyBufs [][]byte
+        - batchKeys []kv.Key
+
+        - columnsTypes() []*types.FieldType
+        - constructTableScanPB(pbColumnInfos []*tipb.ColumnInfo) *tipb.Executor
+        - constructLimitPB(count uint64) *tipb.Executor
+        - buildDAGPB(txn kv.Transaction, limitCnt uint64) (*tipb.DAGRequest, error)
+        - buildTableScan(ctx context.Context, txn kv.Transaction, startHandle int64, limitCnt uint64) (distsql.SelectResult, error)
+        - backfillIndex(ctx context.Context) (int64, int64, error)
+        - fetchRecoverRows(ctx context.Context, srcResult distsql.SelectResult, result *backfillResult) ([]recoverRows, error)
+        - batchMarkDup(txn kv.Transaction, rows []recoverRows) error
+        - backfillIndexInTxn(ctx context.Context, txn kv.Transaction, startHandle int64) (backfillResult, error)
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ReloadExprPushdownBlacklistExec << (S,Aquamarine) >> {
+        + Next(ctx context.Context, _ *chunk.Chunk) error
+
+    }
+    class ReloadOptRuleBlacklistExec << (S,Aquamarine) >> {
+        + Next(ctx context.Context, _ *chunk.Chunk) error
+
+    }
+    class ReplaceExec << (S,Aquamarine) >> {
+        + Priority int
+
+        - removeRow(ctx context.Context, txn kv.Transaction, handle int64, r toBeCheckedRow) (bool, error)
+        - replaceRow(ctx context.Context, r toBeCheckedRow) error
+        - removeIndexRow(ctx context.Context, txn kv.Transaction, r toBeCheckedRow) (bool, bool, error)
+        - exec(ctx context.Context, newRows [][]types.Datum) error
+        - setMessage() 
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class RevokeExec << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - is infoschema.InfoSchema
+        - done bool
+
+        + Privs []*ast.PrivElem
+        + ObjectType ast.ObjectTypeType
+        + Level *ast.GrantLevel
+        + Users []*ast.UserSpec
+
+        - revokeOneUser(internalSession sessionctx.Context, user string, host string) error
+        - revokePriv(internalSession sessionctx.Context, priv *ast.PrivElem, user string, host string) error
+        - revokeGlobalPriv(internalSession sessionctx.Context, priv *ast.PrivElem, user string, host string) error
+        - revokeDBPriv(internalSession sessionctx.Context, priv *ast.PrivElem, userName string, host string) error
+        - revokeTablePriv(internalSession sessionctx.Context, priv *ast.PrivElem, user string, host string) error
+        - revokeColumnPriv(internalSession sessionctx.Context, priv *ast.PrivElem, user string, host string) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SQLBindExec << (S,Aquamarine) >> {
+        - sqlBindOp core.SQLBindOpType
+        - normdOrigSQL string
+        - bindSQL string
+        - charset string
+        - collation string
+        - db string
+        - isGlobal bool
+        - bindAst ast.StmtNode
+
+        - dropSQLBind() error
+        - createSQLBind() error
+        - flushBindings() error
+        - captureBindings() 
+        - evolveBindings() error
+        - reloadBindings() error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SelectIntoExec << (S,Aquamarine) >> {
+        - intoOpt *ast.SelectIntoOption
+        - lineBuf []byte
+        - realBuf []byte
+        - writer *bufio.Writer
+        - dstFile *os.File
+        - chk *chunk.Chunk
+        - started bool
+
+        - considerEncloseOpt(et types.EvalType) bool
+        - dumpToOutfile() error
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class SelectLockExec << (S,Aquamarine) >> {
+        - keys []kv.Key
+        - tblID2Handle <font color=blue>map</font>[int64][]*expression.Column
+        - partitionedTable []table.PartitionedTable
+        - tblID2Table <font color=blue>map</font>[int64]table.PartitionedTable
+
+        + Lock ast.SelectLockType
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SelectionExec << (S,Aquamarine) >> {
+        - batched bool
+        - filters []expression.Expression
+        - selected []bool
+        - inputIter *chunk.Iterator4Chunk
+        - inputRow chunk.Row
+        - childResult *chunk.Chunk
+        - memTracker *memory.Tracker
+
+        - open(ctx context.Context) error
+        - unBatchedNext(ctx context.Context, chk *chunk.Chunk) error
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SetConfigExec << (S,Aquamarine) >> {
+        - p *core.SetConfig
+        - jsonBody string
+
+        - doRequest(url string) error
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SetExecutor << (S,Aquamarine) >> {
+        - vars []*expression.VarAssignment
+        - done bool
+
+        - getSynonyms(varName string) []string
+        - setSysVariable(name string, v *expression.VarAssignment) error
+        - setCharset(cs string, co string) error
+        - getVarValue(v *expression.VarAssignment, sysVar *variable.SysVar) (types.Datum, error)
+        - loadSnapshotInfoSchemaIfNeeded(name string) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowDDLExec << (S,Aquamarine) >> {
+        - ddlOwnerID string
+        - selfID string
+        - ddlInfo *admin.DDLInfo
+        - done bool
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowDDLJobQueriesExec << (S,Aquamarine) >> {
+        - cursor int
+        - jobs []*model.Job
+        - jobIDs []int64
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowDDLJobsExec << (S,Aquamarine) >> {
+        - jobNumber int
+        - is infoschema.InfoSchema
+        - done bool
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowExec << (S,Aquamarine) >> {
+        - is infoschema.InfoSchema
+        - result *chunk.Chunk
+        - cursor int
+
+        + Tp ast.ShowStmtType
+        + DBName model.CIStr
+        + Table *ast.TableName
+        + Column *ast.ColumnName
+        + IndexName model.CIStr
+        + Flag int
+        + Roles []*auth.RoleIdentity
+        + User *auth.UserIdentity
+        + Full bool
+        + IfNotExists bool
+        + GlobalScope bool
+        + Extended bool
+
+        - fetchAll(ctx context.Context) error
+        - fetchShowBind() error
+        - fetchShowEngines() error
+        - fetchShowDatabases() error
+        - fetchShowProcessList() error
+        - fetchShowOpenTables() error
+        - fetchShowTables() error
+        - fetchShowTableStatus() error
+        - fetchShowColumns(ctx context.Context) error
+        - fetchShowIndex() error
+        - fetchShowCharset() error
+        - fetchShowMasterStatus() error
+        - fetchShowVariables() error
+        - fetchShowStatus() error
+        - fetchShowCreateSequence() error
+        - fetchShowClusterConfigs(ctx context.Context) error
+        - fetchShowCreateTable() error
+        - fetchShowCreateView() error
+        - fetchShowCreateDatabase() error
+        - fetchShowCollation() error
+        - fetchShowCreateUser() error
+        - fetchShowGrants() error
+        - fetchShowPrivileges() error
+        - fetchShowTriggers() error
+        - fetchShowProcedureStatus() error
+        - fetchShowPlugins() error
+        - fetchShowWarnings(errOnly bool) error
+        - fetchShowPumpOrDrainerStatus(kind string) error
+        - getTable() (table.Table, error)
+        - dbAccessDenied() error
+        - tableAccessDenied(access string, table string) error
+        - appendRow(row []<font color=blue>interface</font>{}) 
+        - fetchShowTableRegions() error
+        - fillRegionsToChunk(regions []regionMeta) 
+        - fetchShowBuiltins() error
+        - fetchShowStatsMeta() error
+        - appendTableForStatsMeta(dbName string, tblName string, partitionName string, statsTbl *statistics.Table) 
+        - fetchShowStatsHistogram() error
+        - appendTableForStatsHistograms(dbName string, tblName string, partitionName string, statsTbl *statistics.Table) 
+        - histogramToRow(dbName string, tblName string, partitionName string, colName string, isIndex int, hist statistics.Histogram, avgColSize float64) 
+        - versionToTime(version uint64) types.Time
+        - fetchShowStatsBuckets() error
+        - appendTableForStatsBuckets(dbName string, tblName string, partitionName string, statsTbl *statistics.Table) error
+        - bucketsToRows(dbName string, tblName string, partitionName string, colName string, numOfCols int, hist statistics.Histogram) error
+        - fetchShowStatsHealthy() 
+        - appendTableForStatsHealthy(dbName string, tblName string, partitionName string, statsTbl *statistics.Table) 
+        - fetchShowAnalyzeStatus() 
+        - fetchShowBRIE(kind ast.BRIEKind) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowNextRowIDExec << (S,Aquamarine) >> {
+        - tblName *ast.TableName
+        - done bool
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShowSlowExec << (S,Aquamarine) >> {
+        - result []*domain.SlowQueryInfo
+        - cursor int
+
+        + ShowSlow *ast.ShowSlow
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class ShuffleExec << (S,Aquamarine) >> {
+        - concurrency int
+        - workers []*shuffleWorker
+        - prepared bool
+        - executed bool
+        - splitter partitionSplitter
+        - dataSource Executor
+        - finishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - outputCh <font color=blue>chan</font> *shuffleOutput
+
+        - prepare4ParallelExec(ctx context.Context) 
+        - waitWorkerAndCloseOutput(waitGroup *sync.WaitGroup) 
+        - fetchDataAndSplit(ctx context.Context) 
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SimpleExec << (S,Aquamarine) >> {
+        - done bool
+        - is infoschema.InfoSchema
+
+        + Statement ast.StmtNode
+
+        - setDefaultRoleNone(s *ast.SetDefaultRoleStmt) error
+        - setDefaultRoleRegular(s *ast.SetDefaultRoleStmt) error
+        - setDefaultRoleAll(s *ast.SetDefaultRoleStmt) error
+        - setDefaultRoleForCurrentUser(s *ast.SetDefaultRoleStmt) error
+        - executeSetDefaultRole(s *ast.SetDefaultRoleStmt) error
+        - setRoleRegular(s *ast.SetRoleStmt) error
+        - setRoleAll(s *ast.SetRoleStmt) error
+        - setRoleAllExcept(s *ast.SetRoleStmt) error
+        - setRoleDefault(s *ast.SetRoleStmt) error
+        - setRoleNone(s *ast.SetRoleStmt) error
+        - executeSetRole(s *ast.SetRoleStmt) error
+        - dbAccessDenied(dbname string) error
+        - executeUse(s *ast.UseStmt) error
+        - executeBegin(ctx context.Context, s *ast.BeginStmt) error
+        - executeRevokeRole(s *ast.RevokeRoleStmt) error
+        - executeCommit(s *ast.CommitStmt) 
+        - executeRollback(s *ast.RollbackStmt) error
+        - executeCreateUser(ctx context.Context, s *ast.CreateUserStmt) error
+        - executeAlterUser(s *ast.AlterUserStmt) error
+        - executeGrantRole(s *ast.GrantRoleStmt) error
+        - executeDropUser(s *ast.DropUserStmt) error
+        - executeSetPwd(s *ast.SetPwdStmt) error
+        - executeKillStmt(s *ast.KillStmt) error
+        - executeFlush(s *ast.FlushStmt) error
+        - executeAlterInstance(s *ast.AlterInstanceStmt) error
+        - executeDropStats(s *ast.DropStatsStmt) error
+        - autoNewTxn() bool
+        - executeShutdown(s *ast.ShutdownStmt) error
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SortExec << (S,Aquamarine) >> {
+        - fetched bool
+        - schema *expression.Schema
+        - keyExprs []expression.Expression
+        - keyTypes []*types.FieldType
+        - keyColumns []int
+        - keyCmpFuncs []chunk.CompareFunc
+        - rowChunks *chunk.SortedRowContainer
+        - memTracker *memory.Tracker
+        - diskTracker *disk.Tracker
+        - partitionList []*chunk.SortedRowContainer
+        - multiWayMerge *multiWayMerge
+        - spillAction *chunk.SortAndSpillDiskAction
+
+        + ByItems []*util.ByItems
+        + Idx int
+
+        - externalSorting(req *chunk.Chunk) error
+        - fetchRowChunks(ctx context.Context) error
+        - initCompareFuncs() 
+        - buildKeyColumns() 
+        - lessRow(rowI chunk.Row, rowJ chunk.Row) bool
+
+        + Close() error
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class SplitIndexRegionExec << (S,Aquamarine) >> {
+        - tableInfo *model.TableInfo
+        - partitionNames []model.CIStr
+        - indexInfo *model.IndexInfo
+        - lower []types.Datum
+        - upper []types.Datum
+        - num int
+        - valueLists [][]types.Datum
+        - splitIdxKeys [][]byte
+        - done bool
+
+        - splitIndexRegion(ctx context.Context) error
+        - getSplitIdxKeys() ([][]byte, error)
+        - getSplitIdxKeysFromValueList() ([][]byte, error)
+        - getSplitIdxPhysicalKeysFromValueList(physicalID int64, keys [][]byte) ([][]byte, error)
+        - getSplitIdxPhysicalStartAndOtherIdxKeys(physicalID int64, keys [][]byte) [][]byte
+        - getSplitIdxKeysFromBound() ([][]byte, error)
+        - getSplitIdxPhysicalKeysFromBound(physicalID int64, keys [][]byte) ([][]byte, error)
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, chk *chunk.Chunk) error
+
+    }
+    class SplitTableRegionExec << (S,Aquamarine) >> {
+        - tableInfo *model.TableInfo
+        - partitionNames []model.CIStr
+        - lower types.Datum
+        - upper types.Datum
+        - num int
+        - valueLists [][]types.Datum
+        - splitKeys [][]byte
+        - done bool
+
+        - splitTableRegion(ctx context.Context) error
+        - getSplitTableKeys() ([][]byte, error)
+        - getSplitTableKeysFromValueList() ([][]byte, error)
+        - getSplitTablePhysicalKeysFromValueList(physicalID int64, keys [][]byte) [][]byte
+        - getSplitTableKeysFromBound() ([][]byte, error)
+        - calculateBoundValue() (int64, int64, error)
+        - getSplitTablePhysicalKeysFromBound(physicalID int64, low int64, step int64, keys [][]byte) [][]byte
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, chk *chunk.Chunk) error
+
+    }
+    class StreamAggExec << (S,Aquamarine) >> {
+        - executed bool
+        - isChildReturnEmpty bool
+        - defaultVal *chunk.Chunk
+        - groupChecker *vecGroupChecker
+        - inputIter *chunk.Iterator4Chunk
+        - inputRow chunk.Row
+        - aggFuncs []aggfuncs.AggFunc
+        - partialResults []aggfuncs.PartialResult
+        - groupRows []chunk.Row
+        - childResult *chunk.Chunk
+        - memTracker *memory.Tracker
+
+        - consumeOneGroup(ctx context.Context, chk *chunk.Chunk) error
+        - consumeGroupRows() error
+        - consumeCurGroupRowsAndFetchChild(ctx context.Context, chk *chunk.Chunk) error
+        - appendResult2Chunk(chk *chunk.Chunk) error
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class TableDualExec << (S,Aquamarine) >> {
+        - numDualRows int
+        - numReturned int
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class TableReaderExecutor << (S,Aquamarine) >> {
+        - table table.Table
+        - ranges []*ranger.Range
+        - kvRanges []kv.KeyRange
+        - dagPB *tipb.DAGRequest
+        - startTS uint64
+        - columns []*model.ColumnInfo
+        - resultHandler *tableResultHandler
+        - feedback *statistics.QueryFeedback
+        - plans []core.PhysicalPlan
+        - memTracker *memory.Tracker
+        - keepOrder bool
+        - desc bool
+        - streaming bool
+        - storeType kv.StoreType
+        - corColInFilter bool
+        - corColInAccess bool
+        - virtualColumnIndex []int
+        - virtualColumnRetFieldTypes []*types.FieldType
+        - batchCop bool
+
+        - buildResp(ctx context.Context, ranges []*ranger.Range) (distsql.SelectResult, error)
+        - buildVirtualColumnInfo() 
+        - setBatchCop(v *core.PhysicalTableReader) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class TableScanExec << (S,Aquamarine) >> {
+        - t table.Table
+        - seekHandle int64
+        - iter kv.Iterator
+        - columns []*model.ColumnInfo
+        - isVirtualTable bool
+        - virtualTableChunkList *chunk.List
+        - virtualTableChunkIdx int
+
+        - nextChunk4InfoSchema(ctx context.Context, chk *chunk.Chunk) error
+        - nextHandle() (int64, bool, error)
+        - getRow(handle int64) ([]types.Datum, error)
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Open(ctx context.Context) error
+
+    }
+    class TopNExec << (S,Aquamarine) >> {
+        - limit *core.PhysicalLimit
+        - totalLimit uint64
+        - rowChunks *chunk.List
+        - rowPtrs []chunk.RowPtr
+        - chkHeap *topNChunkHeap
+
+        - keyColumnsLess(i int, j int) bool
+        - initPointers() 
+        - loadChunksUntilTotalLimit(ctx context.Context) error
+        - executeTopN(ctx context.Context) error
+        - processChildChk(childRowChk *chunk.Chunk) error
+        - doCompaction() error
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class TraceExec << (S,Aquamarine) >> {
+        - exhausted bool
+        - stmtNode ast.StmtNode
+        - rootTrace opentracing.Span
+        - builder *executorBuilder
+        - format string
+
+        + CollectedSpans []basictracer.RawSpan
+
+        - nextTraceLog(ctx context.Context, se sqlexec.SQLExecutor, req *chunk.Chunk) error
+        - nextRowJSON(ctx context.Context, se sqlexec.SQLExecutor, req *chunk.Chunk) error
+        - executeChild(ctx context.Context, se sqlexec.SQLExecutor) 
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class UnionExec << (S,Aquamarine) >> {
+        - stopFetchData atomic.Value
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - resourcePools []<font color=blue>chan</font> *chunk.Chunk
+        - resultPool <font color=blue>chan</font> *unionWorkerResult
+        - childrenResults []*chunk.Chunk
+        - wg sync.WaitGroup
+        - initialized bool
+
+        - waitAllFinished() 
+        - initialize(ctx context.Context) 
+        - resultPuller(ctx context.Context, childID int) 
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+
+    }
+    class UnionScanExec << (S,Aquamarine) >> {
+        - dirty *DirtyTable
+        - usedIndex []int
+        - desc bool
+        - conditions []expression.Expression
+        - conditionsWithVirCol []expression.Expression
+        - columns []*model.ColumnInfo
+        - table table.Table
+        - belowHandleIndex int
+        - addedRows [][]types.Datum
+        - cursor4AddRows int
+        - sortErr error
+        - snapshotRows [][]types.Datum
+        - cursor4SnapshotRows int
+        - snapshotChunkBuffer *chunk.Chunk
+        - mutableRow chunk.MutRow
+        - virtualColumnIndex []int
+
+        - open(ctx context.Context) error
+        - getOneRow(ctx context.Context) ([]types.Datum, error)
+        - getSnapshotRow(ctx context.Context) ([]types.Datum, error)
+        - getAddedRow() []types.Datum
+        - shouldPickFirstRow(a []types.Datum, b []types.Datum) (bool, error)
+        - compare(a []types.Datum, b []types.Datum) (int, error)
+
+        + Open(ctx context.Context) error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class UpdateExec << (S,Aquamarine) >> {
+        - updatedRowKeys <font color=blue>map</font>[int64]<font color=blue>map</font>[int64]bool
+        - tblID2table <font color=blue>map</font>[int64]table.Table
+        - matched uint64
+        - tblColPosInfos core.TblColPosInfoSlice
+        - evalBuffer chunk.MutRow
+        - allAssignmentsAreConstant bool
+        - drained bool
+        - memTracker *memory.Tracker
+
+        + OrderedList []*expression.Assignment
+
+        - exec(ctx context.Context, schema *expression.Schema, row []types.Datum, newData []types.Datum) error
+        - canNotUpdate(handle types.Datum) bool
+        - updateRows(ctx context.Context) (int, error)
+        - handleErr(colName model.CIStr, rowIdx int, err error) error
+        - fastComposeNewRow(rowIdx int, oldRow []types.Datum, cols []*table.Column) ([]types.Datum, error)
+        - composeNewRow(rowIdx int, oldRow []types.Datum, cols []*table.Column) ([]types.Datum, error)
+        - setMessage() 
+
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + Close() error
+        + Open(ctx context.Context) error
+
+    }
+    class WindowExec << (S,Aquamarine) >> {
+        - groupChecker *vecGroupChecker
+        - childResult *chunk.Chunk
+        - executed bool
+        - resultChunks []*chunk.Chunk
+        - remainingRowsInChunk []int
+        - numWindowFuncs int
+        - processor windowProcessor
+
+        - preparedChunkAvailable() bool
+        - consumeOneGroup(ctx context.Context) error
+        - consumeGroupRows(groupRows []chunk.Row) error
+        - fetchChild(ctx context.Context) (bool, error)
+        - copyChk(src *chunk.Chunk, dst *chunk.Chunk) error
+
+        + Close() error
+        + Next(ctx context.Context, chk *chunk.Chunk) error
+
+    }
+    class aggWindowProcessor << (S,Aquamarine) >> {
+        - windowFuncs []aggfuncs.AggFunc
+        - partialResults []aggfuncs.PartialResult
+
+        - consumeGroupRows(ctx sessionctx.Context, rows []chunk.Row) ([]chunk.Row, error)
+        - appendResult2Chunk(ctx sessionctx.Context, rows []chunk.Row, chk *chunk.Chunk, remained int) ([]chunk.Row, error)
+        - resetPartialResult() 
+
+    }
+    class allocBuf << (S,Aquamarine) >> {
+        - handleBytes []byte
+        - rd *rowcodec.BytesDecoder
+
+    }
+    class analyzeIndexIncrementalExec << (S,Aquamarine) >> {
+        - oldHist *statistics.Histogram
+        - oldCMS *statistics.CMSketch
+
+    }
+    class analyzePKIncrementalExec << (S,Aquamarine) >> {
+        - oldHist *statistics.Histogram
+
+    }
+    class analyzeResult << (S,Aquamarine) >> {
+        - job *statistics.AnalyzeJob
+
+        + PhysicalTableID int64
+        + Hist []*statistics.Histogram
+        + Cms []*statistics.CMSketch
+        + Count int64
+        + IsIndex int
+        + Err error
+
+    }
+    class analyzeTask << (S,Aquamarine) >> {
+        - taskType taskType
+        - idxExec *AnalyzeIndexExec
+        - colExec *AnalyzeColumnsExec
+        - fastExec *AnalyzeFastExec
+        - idxIncrementalExec *analyzeIndexIncrementalExec
+        - colIncrementalExec *analyzePKIncrementalExec
+        - job *statistics.AnalyzeJob
+
+    }
+    class antiLeftOuterSemiJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMatch(outer chunk.Row, chk *chunk.Chunk) 
+        - onMissMatch(hasNull bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class antiSemiJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(hasNull bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class backfillResult << (S,Aquamarine) >> {
+        - nextHandle int64
+        - addedCount int64
+        - scanRowCount int64
+
+    }
+    class baseExecutor << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - id fmt.Stringer
+        - schema *expression.Schema
+        - initCap int
+        - maxChunkSize int
+        - children []Executor
+        - retFieldTypes []*types.FieldType
+        - runtimeStats *execdetails.RuntimeStats
+
+        - getSysSession() (sessionctx.Context, error)
+        - releaseSysSession(ctx sessionctx.Context) 
+        - base() *baseExecutor
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Schema() *expression.Schema
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class baseHashAggWorker << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - finishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - aggFuncs []aggfuncs.AggFunc
+        - maxChunkSize int
+
+        - getPartialResult(sc *stmtctx.StatementContext, groupKey [][]byte, mapper aggPartialResultMapper) [][]aggfuncs.PartialResult
+
+    }
+    class baseJoiner << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - conditions []expression.Expression
+        - defaultInner chunk.Row
+        - outerIsRight bool
+        - chk *chunk.Chunk
+        - shallowRow chunk.MutRow
+        - selected []bool
+        - isNull []bool
+        - maxChunkSize int
+        - lUsed []int
+
+        - initDefaultInner(innerTypes []*types.FieldType, defaultInner []types.Datum) 
+        - makeJoinRowToChunk(chk *chunk.Chunk, lhs chunk.Row, rhs chunk.Row, lUsed []int, rUsed []int) 
+        - makeShallowJoinRow(isRightJoin bool, inner chunk.Row, outer chunk.Row) 
+        - filter(input *chunk.Chunk, output *chunk.Chunk, outerColLen int, lUsed []int, rUsed []int) (bool, error)
+        - filterAndCheckOuterRowStatus(input *chunk.Chunk, output *chunk.Chunk, innerColsLen int, outerRowStatus []outerRowStatusFlag, lUsed []int, rUsed []int) ([]outerRowStatusFlag, error)
+
+        + Clone() baseJoiner
+
+    }
+    class brieQueue << (S,Aquamarine) >> {
+        - nextID uint64
+        - tasks sync.Map
+        - workerCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+
+        - registerTask(ctx context.Context, info *brieTaskInfo) (context.Context, uint64)
+        - acquireTask(taskCtx context.Context, taskID uint64) (*brieTaskProgress, error)
+        - releaseTask() 
+        - cancelTask(taskID uint64) 
+
+    }
+    class brieQueueItem << (S,Aquamarine) >> {
+        - info *brieTaskInfo
+        - progress *brieTaskProgress
+        - cancel <font color=blue>func</font>() 
+
+    }
+    class brieTaskInfo << (S,Aquamarine) >> {
+        - queueTime types.Time
+        - execTime types.Time
+        - kind ast.BRIEKind
+        - storage string
+        - connID uint64
+        - backupTS uint64
+        - archiveSize uint64
+
+    }
+    class brieTaskProgress << (S,Aquamarine) >> {
+        - current int64
+        - lock sync.Mutex
+        - cmd string
+        - total int64
+
+        + Inc() 
+        + Close() 
+
+    }
+    class checkIndexValue << (S,Aquamarine) >> {
+        - idxColTps []*types.FieldType
+        - idxTblCols []*table.Column
+        - genExprs <font color=blue>map</font>[model.TableColumnID]expression.Expression
+
+    }
+    class checkRegionHealth << (S,Aquamarine) >> {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(_ string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class checkStoreRegionTooMuch << (S,Aquamarine) >> {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class checksumContext << (S,Aquamarine) >> {
+        + DBInfo *model.DBInfo
+        + TableInfo *model.TableInfo
+        + StartTs uint64
+        + Response *tipb.ChecksumResponse
+
+        - appendRequest(ctx sessionctx.Context, tableID int64, reqs *[]*kv.Request) error
+        - buildTableRequest(ctx sessionctx.Context, tableID int64) (*kv.Request, error)
+        - buildIndexRequest(ctx sessionctx.Context, tableID int64, indexInfo *model.IndexInfo) (*kv.Request, error)
+
+        + BuildRequests(ctx sessionctx.Context) ([]*kv.Request, error)
+        + HandleResponse(update *tipb.ChecksumResponse) 
+
+    }
+    class checksumResult << (S,Aquamarine) >> {
+        + Error error
+        + TableID int64
+        + Response *tipb.ChecksumResponse
+
+    }
+    class checksumTask << (S,Aquamarine) >> {
+        + TableID int64
+        + Request *kv.Request
+
+    }
+    class chunkRowRecordSet << (S,Aquamarine) >> {
+        - rows []chunk.Row
+        - idx int
+        - fields []*ast.ResultField
+        - e Executor
+        - execStmt *ExecStmt
+
+        + Fields() []*ast.ResultField
+        + Next(ctx context.Context, chk *chunk.Chunk) error
+        + NewChunk() *chunk.Chunk
+        + Close() error
+
+    }
+    class clusterConfigRetriever << (S,Aquamarine) >> {
+        - retrieved bool
+        - extractor *core.ClusterTableExtractor
+
+        - retrieve(_ context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    class clusterLogRetriever << (S,Aquamarine) >> {
+        - isDrained bool
+        - retrieving bool
+        - heap *logResponseHeap
+        - extractor *core.ClusterLogTableExtractor
+        - cancel context.CancelFunc
+
+        - initialize(ctx context.Context, sctx sessionctx.Context) ([]<font color=blue>chan</font> logStreamResult, error)
+        - startRetrieving(ctx context.Context, sctx sessionctx.Context, serversInfo []infoschema.ServerInfo, req *diagnosticspb.SearchLogRequest) ([]<font color=blue>chan</font> logStreamResult, error)
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+        - close() error
+
+    }
+    class clusterServerInfoRetriever << (S,Aquamarine) >> {
+        - extractor *core.ClusterTableExtractor
+        - serverInfoType diagnosticspb.ServerInfoType
+        - retrieved bool
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    class compareStoreStatus << (S,Aquamarine) >> {
+        - item string
+        - tp string
+        - threshold float64
+
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(_ string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class configInspection << (S,Aquamarine) >> {
+        - inspect(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectDiffConfig(_ context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectCheckConfig(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - checkTiKVBlockCacheSizeConfig(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - convertReadableSizeToByteSize(sizeStr string) (uint64, error)
+
+    }
+    class criticalErrorInspection << (S,Aquamarine) >> {
+        - inspect(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectError(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectForServerDown(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+
+    }
+    class dataReaderBuilder << (S,Aquamarine) >> {
+        - buildExecutorForIndexJoin(ctx context.Context, lookUpContents []*indexJoinLookUpContent, IndexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+        - buildExecutorForIndexJoinInternal(ctx context.Context, plan core.Plan, lookUpContents []*indexJoinLookUpContent, IndexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+        - buildUnionScanForIndexJoin(ctx context.Context, v *core.PhysicalUnionScan, values []*indexJoinLookUpContent, indexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+        - buildTableReaderForIndexJoin(ctx context.Context, v *core.PhysicalTableReader, lookUpContents []*indexJoinLookUpContent) (Executor, error)
+        - buildTableReaderFromHandles(ctx context.Context, e *TableReaderExecutor, handles []int64) (Executor, error)
+        - buildIndexReaderForIndexJoin(ctx context.Context, v *core.PhysicalIndexReader, lookUpContents []*indexJoinLookUpContent, indexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+        - buildIndexLookUpReaderForIndexJoin(ctx context.Context, v *core.PhysicalIndexLookUpReader, lookUpContents []*indexJoinLookUpContent, indexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+        - buildProjectionForIndexJoin(ctx context.Context, v *core.PhysicalProjection, lookUpContents []*indexJoinLookUpContent, indexRanges []*ranger.Range, keyOff2IdxOff []int, cwc *core.ColWithCmpFuncManager) (Executor, error)
+
+    }
+    class defaultVal << (S,Aquamarine) >> {
+        - val types.Datum
+        - valid bool
+
+    }
+    class dummyCloser << (S,Aquamarine) >> {
+        - close() error
+
+    }
+    class entry << (S,Aquamarine) >> {
+        - ptr chunk.RowPtr
+        - next entryAddr
+
+    }
+    class entryAddr << (S,Aquamarine) >> {
+        - sliceIdx uint32
+        - offset uint32
+
+    }
+    class entryStore << (S,Aquamarine) >> {
+        - slices [][]entry
+
+        - init() 
+        - put(e entry) entryAddr
+        - get(addr entryAddr) entry
+
+    }
+    class executor.IndexAdviseVarKeyType << (T, #FF7700) >>  {
+    }
+    class executor.TestShowClusterConfigFunc << (T, #FF7700) >>  {
+    }
+    class executor.aggPartialResultMapper << (T, #FF7700) >>  {
+    }
+    class executor.loadDataVarKeyType << (T, #FF7700) >>  {
+    }
+    class executor.loadStatsVarKeyType << (T, #FF7700) >>  {
+    }
+    class executor.logResponseHeap << (T, #FF7700) >>  {
+    }
+    class executor.objectType << (T, #FF7700) >>  {
+    }
+    class executor.outerRowStatusFlag << (T, #FF7700) >>  {
+    }
+    class executor.processKVFunc << (T, #FF7700) >>  {
+    }
+    class executor.promQLQueryRange << (T, #FF7700) >>  {
+    }
+    class executor.tableRowMapType << (T, #FF7700) >>  {
+    }
+    class executor.taskType << (T, #FF7700) >>  {
+    }
+    class executorBuilder << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - is infoschema.InfoSchema
+        - snapshotTS uint64
+        - err error
+        - hasLock bool
+
+        - buildPointGet(p *core.PointGetPlan) Executor
+        - parseTSString(ts string) (uint64, error)
+        - buildBRIE(s *ast.BRIEStmt, schema *expression.Schema) Executor
+        - build(p core.Plan) Executor
+        - buildCancelDDLJobs(v *core.CancelDDLJobs) Executor
+        - buildChange(v *core.Change) Executor
+        - buildShowNextRowID(v *core.ShowNextRowID) Executor
+        - buildShowDDL(v *core.ShowDDL) Executor
+        - buildShowDDLJobs(v *core.PhysicalShowDDLJobs) Executor
+        - buildShowDDLJobQueries(v *core.ShowDDLJobQueries) Executor
+        - buildShowSlow(v *core.ShowSlow) Executor
+        - buildCheckTable(v *core.CheckTable) Executor
+        - buildRecoverIndex(v *core.RecoverIndex) Executor
+        - buildCleanupIndex(v *core.CleanupIndex) Executor
+        - buildCheckIndexRange(v *core.CheckIndexRange) Executor
+        - buildChecksumTable(v *core.ChecksumTable) Executor
+        - buildReloadExprPushdownBlacklist(v *core.ReloadExprPushdownBlacklist) Executor
+        - buildReloadOptRuleBlacklist(v *core.ReloadOptRuleBlacklist) Executor
+        - buildAdminPlugins(v *core.AdminPlugins) Executor
+        - buildDeallocate(v *core.Deallocate) Executor
+        - buildSelectLock(v *core.PhysicalLock) Executor
+        - buildLimit(v *core.PhysicalLimit) Executor
+        - buildPrepare(v *core.Prepare) Executor
+        - buildExecute(v *core.Execute) Executor
+        - buildShow(v *core.PhysicalShow) Executor
+        - buildSimple(v *core.Simple) Executor
+        - buildSet(v *core.Set) Executor
+        - buildSetConfig(v *core.SetConfig) Executor
+        - buildInsert(v *core.Insert) Executor
+        - buildLoadData(v *core.LoadData) Executor
+        - buildLoadStats(v *core.LoadStats) Executor
+        - buildIndexAdvise(v *core.IndexAdvise) Executor
+        - buildReplace(vals *InsertValues) Executor
+        - buildGrant(grant *ast.GrantStmt) Executor
+        - buildRevoke(revoke *ast.RevokeStmt) Executor
+        - buildDDL(v *core.DDL) Executor
+        - buildTrace(v *core.Trace) Executor
+        - buildExplain(v *core.Explain) Executor
+        - buildSelectInto(v *core.SelectInto) Executor
+        - buildUnionScanExec(v *core.PhysicalUnionScan) Executor
+        - buildUnionScanFromReader(reader Executor, v *core.PhysicalUnionScan) Executor
+        - buildMergeJoin(v *core.PhysicalMergeJoin) Executor
+        - buildSideEstCount(v *core.PhysicalHashJoin) float64
+        - buildHashJoin(v *core.PhysicalHashJoin) Executor
+        - buildHashAgg(v *core.PhysicalHashAgg) Executor
+        - buildStreamAgg(v *core.PhysicalStreamAgg) Executor
+        - buildSelection(v *core.PhysicalSelection) Executor
+        - buildProjection(v *core.PhysicalProjection) Executor
+        - buildTableDual(v *core.PhysicalTableDual) Executor
+        - getSnapshotTS() (uint64, error)
+        - buildMemTable(v *core.PhysicalMemTable) Executor
+        - buildSort(v *core.PhysicalSort) Executor
+        - buildTopN(v *core.PhysicalTopN) Executor
+        - buildApply(v *core.PhysicalApply) *NestedLoopApplyExec
+        - buildMaxOneRow(v *core.PhysicalMaxOneRow) Executor
+        - buildUnionAll(v *core.PhysicalUnionAll) Executor
+        - buildSplitRegion(v *core.SplitRegion) Executor
+        - buildUpdate(v *core.Update) Executor
+        - buildDelete(v *core.Delete) Executor
+        - updateForUpdateTSIfNeeded(selectPlan core.PhysicalPlan) error
+        - refreshForUpdateTSForRC() error
+        - buildAnalyzeIndexPushdown(task core.AnalyzeIndexTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64, autoAnalyze string) *analyzeTask
+        - buildAnalyzeIndexIncremental(task core.AnalyzeIndexTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64) *analyzeTask
+        - buildAnalyzeColumnsPushdown(task core.AnalyzeColumnsTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64, autoAnalyze string) *analyzeTask
+        - buildAnalyzePKIncremental(task core.AnalyzeColumnsTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64) *analyzeTask
+        - buildAnalyzeFastColumn(e *AnalyzeExec, task core.AnalyzeColumnsTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64) 
+        - buildAnalyzeFastIndex(e *AnalyzeExec, task core.AnalyzeIndexTask, opts <font color=blue>map</font>[ast.AnalyzeOptionType]uint64) 
+        - buildAnalyze(v *core.Analyze) Executor
+        - constructDAGReq(plans []core.PhysicalPlan) (*tipb.DAGRequest, bool, error)
+        - corColInDistPlan(plans []core.PhysicalPlan) bool
+        - corColInAccess(p core.PhysicalPlan) bool
+        - buildIndexLookUpJoin(v *core.PhysicalIndexJoin) Executor
+        - buildIndexLookUpMergeJoin(v *core.PhysicalIndexMergeJoin) Executor
+        - buildIndexNestedLoopHashJoin(v *core.PhysicalIndexHashJoin) Executor
+        - buildTableReader(v *core.PhysicalTableReader) *TableReaderExecutor
+        - buildIndexReader(v *core.PhysicalIndexReader) *IndexReaderExecutor
+        - buildIndexLookUpReader(v *core.PhysicalIndexLookUpReader) *IndexLookUpExecutor
+        - buildIndexMergeReader(v *core.PhysicalIndexMergeReader) *IndexMergeReaderExecutor
+        - buildWindow(v *core.PhysicalWindow) *WindowExec
+        - buildShuffle(v *core.PhysicalShuffle) *ShuffleExec
+        - buildShuffleDataSourceStub(v *core.PhysicalShuffleDataSourceStub) *shuffleWorker
+        - buildSQLBindExec(v *core.SQLBindPlan) Executor
+        - buildBatchPointGet(plan *core.BatchPointGetPlan) Executor
+        - buildAdminShowTelemetry(v *core.AdminShowTelemetry) Executor
+        - buildAdminResetTelemetryID(v *core.AdminResetTelemetryID) Executor
+
+    }
+    class field << (S,Aquamarine) >> {
+        - str []byte
+        - maybeNull bool
+        - enclosed bool
+
+        - escape() field
+        - escapeChar(c byte) byte
+
+    }
+    class fieldWriter << (S,Aquamarine) >> {
+        - pos int
+        - term string
+        - enclosedChar byte
+        - fieldTermChar byte
+        - isEnclosed bool
+        - isLineStart bool
+        - isFieldStart bool
+
+        + ReadBuf []byte
+        + OutputBuf []byte
+
+        - putback() 
+        - getChar() (bool, byte)
+        - isTerminator() bool
+        - outputField(enclosed bool) field
+
+        + Init(enclosedChar byte, fieldTermChar byte, readBuf []byte, term string) 
+        + GetField() (bool, field)
+
+    }
+    class globalPanicOnExceed << (S,Aquamarine) >> {
+        - mutex sync.Mutex
+
+        + SetLogHook(hook <font color=blue>func</font>(uint64) ) 
+        + Action(t *memory.Tracker) 
+        + SetFallback( memory.ActionOnExceed) 
+
+    }
+    class hashContext << (S,Aquamarine) >> {
+        - allTypes []*types.FieldType
+        - keyColIdx []int
+        - buf []byte
+        - hashVals []hash.Hash64
+        - hasNull []bool
+
+        - initHash(rows int) 
+
+    }
+    class hashRowContainer << (S,Aquamarine) >> {
+        - sc *stmtctx.StatementContext
+        - hCtx *hashContext
+        - stat hashStatistic
+        - hashTable *rowHashMap
+        - rowContainer *chunk.RowContainer
+
+        - matchJoinKey(buildRow chunk.Row, probeRow chunk.Row, probeHCtx *hashContext) (bool, error)
+        - alreadySpilledSafe() bool
+        - getJoinKeyFromChkRow(sc *stmtctx.StatementContext, row chunk.Row, hCtx *hashContext) (bool, uint64, error)
+
+        + GetMatchedRowsAndPtrs(probeKey uint64, probeRow chunk.Row, hCtx *hashContext) ([]chunk.Row, []chunk.RowPtr, error)
+        + PutChunk(chk *chunk.Chunk) error
+        + PutChunkSelected(chk *chunk.Chunk, selected []bool) error
+        + NumChunks() int
+        + NumRowsOfChunk(chkID int) int
+        + GetChunk(chkIdx int) (*chunk.Chunk, error)
+        + GetRow(ptr chunk.RowPtr) (chunk.Row, error)
+        + Len() int
+        + Close() error
+        + GetMemTracker() *memory.Tracker
+        + GetDiskTracker() *disk.Tracker
+        + ActionSpill() memory.ActionOnExceed
+
+    }
+    class hashStatistic << (S,Aquamarine) >> {
+        - probeCollision int
+        - buildTableElapse time.Duration
+
+        + String() string
+
+    }
+    class hashjoinWorkerResult << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - err error
+        - src <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class indexHashJoinInnerWorker << (S,Aquamarine) >> {
+        - matchedOuterPtrs []chunk.RowPtr
+        - joiner joiner
+        - joinChkResourceCh <font color=blue>chan</font> *chunk.Chunk
+        - resultCh <font color=blue>chan</font> *indexHashJoinResult
+        - taskCh <font color=blue>chan</font> *indexHashJoinTask
+        - wg *sync.WaitGroup
+        - joinKeyBuf []byte
+        - outerRowStatus []outerRowStatusFlag
+
+        - run(ctx context.Context, cancelFunc context.CancelFunc) 
+        - getNewJoinResult(ctx context.Context) (*indexHashJoinResult, bool)
+        - buildHashTableForOuterResult(ctx context.Context, cancelFunc context.CancelFunc, task *indexHashJoinTask, h hash.Hash64) 
+        - fetchInnerResults(ctx context.Context, task *lookUpJoinTask) error
+        - handleHashJoinInnerWorkerPanic(r <font color=blue>interface</font>{}) 
+        - handleTask(ctx context.Context, cancelFunc context.CancelFunc, task *indexHashJoinTask, joinResult *indexHashJoinResult, h hash.Hash64, resultCh <font color=blue>chan</font> *indexHashJoinResult) error
+        - doJoinUnordered(ctx context.Context, task *indexHashJoinTask, joinResult *indexHashJoinResult, h hash.Hash64, resultCh <font color=blue>chan</font> *indexHashJoinResult) error
+        - getMatchedOuterRows(innerRow chunk.Row, task *indexHashJoinTask, h hash.Hash64, buf []byte) ([]chunk.Row, []chunk.RowPtr, error)
+        - joinMatchedInnerRow2Chunk(ctx context.Context, innerRow chunk.Row, task *indexHashJoinTask, joinResult *indexHashJoinResult, h hash.Hash64, buf []byte) (bool, *indexHashJoinResult)
+        - collectMatchedInnerPtrs4OuterRows(ctx context.Context, innerRow chunk.Row, innerRowPtr chunk.RowPtr, task *indexHashJoinTask, h hash.Hash64, buf []byte) error
+        - doJoinInOrder(ctx context.Context, task *indexHashJoinTask, joinResult *indexHashJoinResult, h hash.Hash64, resultCh <font color=blue>chan</font> *indexHashJoinResult) error
+
+    }
+    class indexHashJoinOuterWorker << (S,Aquamarine) >> {
+        - innerCh <font color=blue>chan</font> *indexHashJoinTask
+        - keepOuterOrder bool
+        - taskCh <font color=blue>chan</font> *indexHashJoinTask
+
+        - run(ctx context.Context, cancelFunc context.CancelFunc) 
+        - buildTask(ctx context.Context) (*indexHashJoinTask, error)
+        - pushToChan(ctx context.Context, task *indexHashJoinTask, dst <font color=blue>chan</font> *indexHashJoinTask) bool
+
+    }
+    class indexHashJoinResult << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - err error
+        - src <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class indexHashJoinTask << (S,Aquamarine) >> {
+        - outerRowStatus [][]outerRowStatusFlag
+        - lookupMap *rowHashMap
+        - err error
+        - keepOuterOrder bool
+        - resultCh <font color=blue>chan</font> *indexHashJoinResult
+        - matchedInnerRowPtrs [][][]chunk.RowPtr
+
+    }
+    class indexJoinLookUpContent << (S,Aquamarine) >> {
+        - keys []types.Datum
+        - row chunk.Row
+
+    }
+    class indexMergeJoinResult << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - src <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class indexMergeProcessWorker << (S,Aquamarine) >> {
+        - fetchLoop(ctx context.Context, fetchCh <font color=blue>chan</font> *lookupTableTask, workCh <font color=blue>chan</font> *lookupTableTask, resultCh <font color=blue>chan</font> *lookupTableTask, finished <font color=blue>chan</font> <font color=blue>struct</font>{}) 
+        - handleLoopFetcherPanic(ctx context.Context, resultCh <font color=blue>chan</font> *lookupTableTask) <font color=blue>func</font>(<font color=blue>interface</font>{}) 
+
+    }
+    class indexMergeTableScanWorker << (S,Aquamarine) >> {
+        - workCh <font color=blue>chan</font> *lookupTableTask
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - buildTblReader <font color=blue>func</font>(context.Context, []int64) (Executor, error)
+        - tblPlans []core.PhysicalPlan
+        - memTracker *memory.Tracker
+
+        - pickAndExecTask(ctx context.Context) *lookupTableTask
+        - handlePickAndExecTaskPanic(ctx context.Context, task *lookupTableTask) <font color=blue>func</font>(<font color=blue>interface</font>{}) 
+        - executeTask(ctx context.Context, task *lookupTableTask) error
+
+    }
+    class indexWorker << (S,Aquamarine) >> {
+        - idxLookup *IndexLookUpExecutor
+        - workCh <font color=blue>chan</font> *lookupTableTask
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - resultCh <font color=blue>chan</font> *lookupTableTask
+        - keepOrder bool
+        - batchSize int
+        - maxBatchSize int
+        - maxChunkSize int
+
+        + PushedLimit *core.PushedDownLimit
+
+        - fetchHandles(ctx context.Context, result distsql.SelectResult) (uint64, error)
+        - extractTaskHandles(ctx context.Context, chk *chunk.Chunk, idxResult distsql.SelectResult, count uint64) ([]int64, *chunk.Chunk, uint64, error)
+        - buildTableTask(handles []int64, retChk *chunk.Chunk) *lookupTableTask
+
+    }
+    class innerCtx << (S,Aquamarine) >> {
+        - readerBuilder *dataReaderBuilder
+        - rowTypes []*types.FieldType
+        - keyCols []int
+        - colLens []int
+        - hasPrefixCol bool
+
+    }
+    class innerJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(_ bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class innerMergeCtx << (S,Aquamarine) >> {
+        - readerBuilder *dataReaderBuilder
+        - rowTypes []*types.FieldType
+        - joinKeys []*expression.Column
+        - keyCols []int
+        - compareFuncs []expression.CompareFunc
+        - colLens []int
+        - desc bool
+        - keyOff2KeyOffOrderByIdx []int
+
+    }
+    class innerMergeWorker << (S,Aquamarine) >> {
+        - taskCh <font color=blue>chan</font> *lookUpMergeJoinTask
+        - joinChkResourceCh <font color=blue>chan</font> *chunk.Chunk
+        - outerMergeCtx outerMergeCtx
+        - ctx sessionctx.Context
+        - innerExec Executor
+        - joiner joiner
+        - retFieldTypes []*types.FieldType
+        - maxChunkSize int
+        - indexRanges []*ranger.Range
+        - nextColCompareFilters *core.ColWithCmpFuncManager
+        - keyOff2IdxOff []int
+
+        - run(ctx context.Context, wg *sync.WaitGroup, cancelFunc context.CancelFunc) 
+        - handleTask(ctx context.Context, task *lookUpMergeJoinTask) error
+        - fetchNewChunkWhenFull(ctx context.Context, task *lookUpMergeJoinTask, chk **chunk.Chunk) bool
+        - doMergeJoin(ctx context.Context, task *lookUpMergeJoinTask) error
+        - fetchInnerRowsWithSameKey(ctx context.Context, task *lookUpMergeJoinTask, key chunk.Row) (bool, error)
+        - compare(outerRow chunk.Row, innerRow chunk.Row) (int, error)
+        - constructDatumLookupKeys(task *lookUpMergeJoinTask) ([]*indexJoinLookUpContent, error)
+        - constructDatumLookupKey(task *lookUpMergeJoinTask, rowIdx chunk.RowPtr) (*indexJoinLookUpContent, error)
+        - dedupDatumLookUpKeys(lookUpContents []*indexJoinLookUpContent) []*indexJoinLookUpContent
+        - fetchNextInnerResult(ctx context.Context, task *lookUpMergeJoinTask) (chunk.Row, error)
+
+    }
+    class innerWorker << (S,Aquamarine) >> {
+        - taskCh <font color=blue>chan</font> *lookUpJoinTask
+        - outerCtx outerCtx
+        - ctx sessionctx.Context
+        - executorChk *chunk.Chunk
+        - indexRanges []*ranger.Range
+        - nextColCompareFilters *core.ColWithCmpFuncManager
+        - keyOff2IdxOff []int
+
+        - run(ctx context.Context, wg *sync.WaitGroup) 
+        - handleTask(ctx context.Context, task *lookUpJoinTask) error
+        - constructLookupContent(task *lookUpJoinTask) ([]*indexJoinLookUpContent, error)
+        - constructDatumLookupKey(task *lookUpJoinTask, chkIdx int, rowIdx int) ([]types.Datum, error)
+        - sortAndDedupLookUpContents(lookUpContents []*indexJoinLookUpContent) []*indexJoinLookUpContent
+        - fetchInnerResults(ctx context.Context, task *lookUpJoinTask, lookUpContent []*indexJoinLookUpContent) error
+        - buildLookUpMap(task *lookUpJoinTask) error
+        - hasNullInJoinKey(row chunk.Row) bool
+
+    }
+    interface insertCommon  {
+        - insertCommon() *InsertValues
+        - exec(ctx context.Context, rows [][]types.Datum) error
+
+    }
+    class inspectCPULoad << (S,Aquamarine) >> {
+        - item string
+        - tbl string
+
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class inspectDiskUsage << (S,Aquamarine) >> {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class inspectSwapMemoryUsed << (S,Aquamarine) >> {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class inspectVirtualMemUsage << (S,Aquamarine) >> {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class inspectionFilter << (S,Aquamarine) >> {
+        - enable(name string) bool
+        - exist(name string) bool
+
+    }
+    class inspectionName << (S,Aquamarine) >> {
+        - name() string
+
+    }
+    class inspectionResult << (S,Aquamarine) >> {
+        - tp string
+        - instance string
+        - statusAddress string
+        - item string
+        - actual string
+        - expected string
+        - severity string
+        - detail string
+        - degree float64
+
+    }
+    class inspectionResultRetriever << (S,Aquamarine) >> {
+        - retrieved bool
+        - extractor *core.InspectionResultTableExtractor
+        - timeRange core.QueryTimeRange
+        - instanceToStatusAddress <font color=blue>map</font>[string]string
+        - statusToInstanceAddress <font color=blue>map</font>[string]string
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    class inspectionRuleRetriever << (S,Aquamarine) >> {
+        - retrieved bool
+        - extractor *core.InspectionRuleTableExtractor
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    class inspectionSummaryRetriever << (S,Aquamarine) >> {
+        - retrieved bool
+        - table *model.TableInfo
+        - extractor *core.InspectionSummaryTableExtractor
+        - timeRange core.QueryTimeRange
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+
+    }
+    interface joiner  {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outer chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(hasNull bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class keyValue << (S,Aquamarine) >> {
+        - key kv.Key
+        - value []byte
+
+    }
+    class keyValueWithDupInfo << (S,Aquamarine) >> {
+        - newKV keyValue
+        - dupErr error
+
+    }
+    class leftOuterJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(_ bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class leftOuterSemiJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMatch(outer chunk.Row, chk *chunk.Chunk) 
+        - onMissMatch(hasNull bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class loadDataVarKeyType << (S,Aquamarine) >> {
+        + String() string
+
+    }
+    class loadStatsVarKeyType << (S,Aquamarine) >> {
+        + String() string
+
+    }
+    class logFile << (S,Aquamarine) >> {
+        - file *os.File
+        - start time.Time
+
+    }
+    class logResponseHeap << (S,Aquamarine) >> {
+        + Len() int
+        + Less(i int, j int) bool
+        + Swap(i int, j int) 
+        + Push(x <font color=blue>interface</font>{}) 
+        + Pop() <font color=blue>interface</font>{}
+
+    }
+    class logStreamResult << (S,Aquamarine) >> {
+        - next <font color=blue>chan</font> logStreamResult
+        - addr string
+        - typ string
+        - messages []*diagnosticspb.LogMessage
+        - err error
+
+    }
+    class lookUpJoinTask << (S,Aquamarine) >> {
+        - outerResult *chunk.List
+        - outerMatch [][]bool
+        - innerResult *chunk.List
+        - encodedLookUpKeys []*chunk.Chunk
+        - lookupMap *mvmap.MVMap
+        - matchedInners []chunk.Row
+        - doneCh <font color=blue>chan</font> error
+        - cursor chunk.RowPtr
+        - hasMatch bool
+        - hasNull bool
+        - memTracker *memory.Tracker
+
+    }
+    class lookUpMergeJoinTask << (S,Aquamarine) >> {
+        - outerResult *chunk.List
+        - outerOrderIdx []chunk.RowPtr
+        - innerResult *chunk.Chunk
+        - innerIter chunk.Iterator
+        - sameKeyInnerRows []chunk.Row
+        - sameKeyIter chunk.Iterator
+        - doneErr error
+        - results <font color=blue>chan</font> *indexMergeJoinResult
+        - memTracker *memory.Tracker
+
+    }
+    class lookupTableTask << (S,Aquamarine) >> {
+        - handles []int64
+        - rowIdx []int
+        - rows []chunk.Row
+        - idxRows *chunk.Chunk
+        - cursor int
+        - doneCh <font color=blue>chan</font> error
+        - indexOrder <font color=blue>map</font>[int64]int
+        - duplicatedIndexOrder <font color=blue>map</font>[int64]int
+        - memUsage int64
+        - memTracker *memory.Tracker
+
+        + Len() int
+        + Less(i int, j int) bool
+        + Swap(i int, j int) 
+
+    }
+    class memIndexLookUpReader << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - index *model.IndexInfo
+        - columns []*model.ColumnInfo
+        - table table.Table
+        - desc bool
+        - conditions []expression.Expression
+        - retFieldTypes []*types.FieldType
+        - idxReader *memIndexReader
+
+        - getMemRows() ([][]types.Datum, error)
+
+    }
+    class memIndexReader << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - index *model.IndexInfo
+        - table *model.TableInfo
+        - kvRanges []kv.KeyRange
+        - desc bool
+        - conditions []expression.Expression
+        - addedRows [][]types.Datum
+        - addedRowsLen int
+        - retFieldTypes []*types.FieldType
+        - outputOffset []int
+        - belowHandleIndex int
+
+        - getMemRows() ([][]types.Datum, error)
+        - decodeIndexKeyValue(key []byte, value []byte, tps []*types.FieldType) ([]types.Datum, error)
+        - getMemRowsHandle() ([]int64, error)
+
+    }
+    class memTableReader << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - table *model.TableInfo
+        - columns []*model.ColumnInfo
+        - kvRanges []kv.KeyRange
+        - desc bool
+        - conditions []expression.Expression
+        - addedRows [][]types.Datum
+        - retFieldTypes []*types.FieldType
+        - colIDs <font color=blue>map</font>[int64]int
+        - buffer allocBuf
+
+        - getMemRows() ([][]types.Datum, error)
+        - decodeRecordKeyValue(key []byte, value []byte) ([]types.Datum, error)
+
+    }
+    interface memTableRetriever  {
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+        - close() error
+
+    }
+    class memtableRetriever << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - columns []*model.ColumnInfo
+        - rows [][]types.Datum
+        - rowIdx int
+        - retrieved bool
+        - initialized bool
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+        - setDataFromSchemata(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataForStatistics(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataForStatisticsInTable(schema *model.DBInfo, table *model.TableInfo) 
+        - setDataFromTables(ctx sessionctx.Context, schemas []*model.DBInfo) error
+        - setDataForColumns(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - dataForColumnsInTable(schema *model.DBInfo, tbl *model.TableInfo) [][]types.Datum
+        - setDataFromPartitions(ctx sessionctx.Context, schemas []*model.DBInfo) error
+        - setDataFromIndexes(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataFromViews(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataFromEngines() 
+        - setDataFromCharacterSets() 
+        - setDataFromCollations() 
+        - dataForCollationCharacterSetApplicability() 
+        - dataForTiDBClusterInfo(ctx sessionctx.Context) error
+        - setDataFromKeyColumnUsage(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataForClusterProcessList(ctx sessionctx.Context) error
+        - setDataForProcessList(ctx sessionctx.Context) 
+        - setDataFromUserPrivileges(ctx sessionctx.Context) 
+        - setDataForMetricTables(ctx sessionctx.Context) 
+        - setDataForTikVRegionPeers(ctx sessionctx.Context) error
+        - setNewTiKVRegionPeersCols(region *helper.RegionInfo) 
+        - setDataForTiDBHotRegions(ctx sessionctx.Context) error
+        - setDataForHotRegionByMetrics(metrics []helper.HotTableIndex, tp string) 
+        - setDataFromTableConstraints(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataFromSessionVar(ctx sessionctx.Context) error
+        - setDataForAnalyzeStatus(sctx sessionctx.Context) 
+        - setDataForPseudoProfiling(sctx sessionctx.Context) 
+        - setDataForServersInfo() error
+        - setDataFromSequences(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - dataForTableTiFlashReplica(ctx sessionctx.Context, schemas []*model.DBInfo) 
+        - setDataForStatementsSummary(ctx sessionctx.Context, tableName string) error
+
+    }
+    class mergeJoinTable << (S,Aquamarine) >> {
+        - isInner bool
+        - childIndex int
+        - joinKeys []*expression.Column
+        - filters []expression.Expression
+        - executed bool
+        - childChunk *chunk.Chunk
+        - childChunkIter *chunk.Iterator4Chunk
+        - groupChecker *vecGroupChecker
+        - groupRowsSelected []int
+        - groupRowsIter chunk.Iterator
+        - rowContainer *chunk.RowContainer
+        - filtersSelected []bool
+        - memTracker *memory.Tracker
+
+        - init(exec *MergeJoinExec) 
+        - finish() error
+        - selectNextGroup() 
+        - fetchNextChunk(ctx context.Context, exec *MergeJoinExec) error
+        - fetchNextInnerGroup(ctx context.Context, exec *MergeJoinExec) error
+        - fetchNextOuterGroup(ctx context.Context, exec *MergeJoinExec, requiredRows int) error
+        - hasNullInJoinKey(row chunk.Row) bool
+
+    }
+    class mockPhysicalIndexReader << (S,Aquamarine) >> {
+        - e Executor
+
+    }
+    class multiWayMerge << (S,Aquamarine) >> {
+        - lessRowFunction <font color=blue>func</font>(chunk.Row, chunk.Row) bool
+        - elements []partitionPointer
+
+        + Less(i int, j int) bool
+        + Len() int
+        + Push(x <font color=blue>interface</font>{}) 
+        + Pop() <font color=blue>interface</font>{}
+        + Swap(i int, j int) 
+
+    }
+    class nodeLoadInspection << (S,Aquamarine) >> {
+        - inspect(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+
+    }
+    class outerCtx << (S,Aquamarine) >> {
+        - rowTypes []*types.FieldType
+        - keyCols []int
+        - filter expression.CNFExprs
+
+    }
+    class outerMergeCtx << (S,Aquamarine) >> {
+        - rowTypes []*types.FieldType
+        - joinKeys []*expression.Column
+        - keyCols []int
+        - filter expression.CNFExprs
+        - needOuterSort bool
+        - compareFuncs []expression.CompareFunc
+
+    }
+    class outerMergeWorker << (S,Aquamarine) >> {
+        - lookup *IndexLookUpMergeJoin
+        - ctx sessionctx.Context
+        - executor Executor
+        - maxBatchSize int
+        - batchSize int
+        - nextColCompareFilters *core.ColWithCmpFuncManager
+        - resultCh <font color=blue>chan</font> *lookUpMergeJoinTask
+        - innerCh <font color=blue>chan</font> *lookUpMergeJoinTask
+        - parentMemTracker *memory.Tracker
+
+        - run(ctx context.Context, wg *sync.WaitGroup, cancelFunc context.CancelFunc) 
+        - pushToChan(ctx context.Context, task *lookUpMergeJoinTask, dst <font color=blue>chan</font> *lookUpMergeJoinTask) bool
+        - buildTask(ctx context.Context) (*lookUpMergeJoinTask, error)
+        - increaseBatchSize() 
+
+    }
+    class outerWorker << (S,Aquamarine) >> {
+        - lookup *IndexLookUpJoin
+        - ctx sessionctx.Context
+        - executor Executor
+        - maxBatchSize int
+        - batchSize int
+        - resultCh <font color=blue>chan</font> *lookUpJoinTask
+        - innerCh <font color=blue>chan</font> *lookUpJoinTask
+        - parentMemTracker *memory.Tracker
+
+        - run(ctx context.Context, wg *sync.WaitGroup) 
+        - pushToChan(ctx context.Context, task *lookUpJoinTask, dst <font color=blue>chan</font> *lookUpJoinTask) bool
+        - buildTask(ctx context.Context) (*lookUpJoinTask, error)
+        - increaseBatchSize() 
+
+    }
+    class paramMarkerExtractor << (S,Aquamarine) >> {
+        - markers []ast.ParamMarkerExpr
+
+        + Enter(in ast.Node) (ast.Node, bool)
+        + Leave(in ast.Node) (ast.Node, bool)
+
+    }
+    class paramMarkerSorter << (S,Aquamarine) >> {
+        - markers []ast.ParamMarkerExpr
+
+        + Len() int
+        + Less(i int, j int) bool
+        + Swap(i int, j int) 
+
+    }
+    class parsedSlowLog << (S,Aquamarine) >> {
+        - rows [][]types.Datum
+        - err error
+
+    }
+    class partialIndexWorker << (S,Aquamarine) >> {
+        - batchSize int
+        - maxBatchSize int
+        - maxChunkSize int
+
+        - fetchHandles(ctx context.Context, result distsql.SelectResult, exitCh <font color=blue>chan</font> <font color=blue>struct</font>{}, fetchCh <font color=blue>chan</font> *lookupTableTask, resultCh <font color=blue>chan</font> *lookupTableTask, finished <font color=blue>chan</font> <font color=blue>struct</font>{}) (int64, error)
+        - extractTaskHandles(ctx context.Context, chk *chunk.Chunk, idxResult distsql.SelectResult) ([]int64, *chunk.Chunk, error)
+        - buildTableTask(handles []int64, retChk *chunk.Chunk) *lookupTableTask
+
+    }
+    class partialTableWorker << (S,Aquamarine) >> {
+        - batchSize int
+        - maxBatchSize int
+        - maxChunkSize int
+        - tableReader Executor
+        - tableInfo *model.TableInfo
+
+        - fetchHandles(ctx context.Context, exitCh <font color=blue>chan</font> <font color=blue>struct</font>{}, fetchCh <font color=blue>chan</font> *lookupTableTask, resultCh <font color=blue>chan</font> *lookupTableTask, finished <font color=blue>chan</font> <font color=blue>struct</font>{}) (int64, error)
+        - extractTaskHandles(ctx context.Context, chk *chunk.Chunk, handleOffset int) ([]int64, *chunk.Chunk, error)
+        - buildTableTask(handles []int64, retChk *chunk.Chunk) *lookupTableTask
+
+    }
+    class partitionHashSplitter << (S,Aquamarine) >> {
+        - byItems []expression.Expression
+        - numWorkers int
+        - hashKeys [][]byte
+
+        - split(ctx sessionctx.Context, input *chunk.Chunk, workerIndices []int) ([]int, error)
+
+    }
+    class partitionPointer << (S,Aquamarine) >> {
+        - row chunk.Row
+        - partitionID int
+        - consumed int
+
+    }
+    interface partitionSplitter  {
+        - split(ctx sessionctx.Context, input *chunk.Chunk, workerIndices []int) ([]int, error)
+
+    }
+    interface pessimisticTxn  {
+        + KeysNeedToLock() ([]kv.Key, error)
+
+    }
+    class probeChkResource << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - dest <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    interface processinfoSetter  {
+        + SetProcessInfo( string,  time.Time,  byte,  uint64) 
+
+    }
+    class projectionInput << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - targetWorker *projectionWorker
+
+    }
+    class projectionInputFetcher << (S,Aquamarine) >> {
+        - proj *ProjectionExec
+        - child Executor
+        - globalFinishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - globalOutputCh <font color=blue>chan</font> *projectionOutput
+        - wg sync.WaitGroup
+        - inputCh <font color=blue>chan</font> *projectionInput
+        - outputCh <font color=blue>chan</font> *projectionOutput
+
+        - run(ctx context.Context) 
+
+    }
+    class projectionOutput << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - done <font color=blue>chan</font> error
+
+    }
+    class projectionWorker << (S,Aquamarine) >> {
+        - proj *ProjectionExec
+        - sctx sessionctx.Context
+        - evaluatorSuit *expression.EvaluatorSuite
+        - globalFinishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - inputGiveBackCh <font color=blue>chan</font> *projectionInput
+        - inputCh <font color=blue>chan</font> *projectionInput
+        - outputCh <font color=blue>chan</font> *projectionOutput
+
+        - run(ctx context.Context) 
+
+    }
+    class rangeFrameWindowProcessor << (S,Aquamarine) >> {
+        - windowFuncs []aggfuncs.AggFunc
+        - partialResults []aggfuncs.PartialResult
+        - start *core.FrameBound
+        - end *core.FrameBound
+        - curRowIdx uint64
+        - lastStartOffset uint64
+        - lastEndOffset uint64
+        - orderByCols []*expression.Column
+        - expectedCmpResult int64
+
+        - getStartOffset(ctx sessionctx.Context, rows []chunk.Row) (uint64, error)
+        - getEndOffset(ctx sessionctx.Context, rows []chunk.Row) (uint64, error)
+        - appendResult2Chunk(ctx sessionctx.Context, rows []chunk.Row, chk *chunk.Chunk, remained int) ([]chunk.Row, error)
+        - consumeGroupRows(ctx sessionctx.Context, rows []chunk.Row) ([]chunk.Row, error)
+        - resetPartialResult() 
+
+    }
+    class recordSet << (S,Aquamarine) >> {
+        - fields []*ast.ResultField
+        - executor Executor
+        - stmt *ExecStmt
+        - lastErr error
+        - txnStartTS uint64
+
+        + Fields() []*ast.ResultField
+        + Next(ctx context.Context, req *chunk.Chunk) error
+        + NewChunk() *chunk.Chunk
+        + Close() error
+        + OnFetchReturned() 
+
+    }
+    class recoverRows << (S,Aquamarine) >> {
+        - handle int64
+        - idxVals []types.Datum
+        - skip bool
+
+    }
+    class regionKeyDecoder << (S,Aquamarine) >> {
+        - physicalTableID int64
+        - tablePrefix []byte
+        - recordPrefix []byte
+        - indexPrefix []byte
+        - indexID int64
+
+        - decodeRegionKey(key []byte) string
+
+    }
+    class regionMeta << (S,Aquamarine) >> {
+        - region *metapb.Region
+        - leaderID uint64
+        - storeID uint64
+        - start string
+        - end string
+        - scattering bool
+        - writtenBytes int64
+        - readBytes int64
+        - approximateSize int64
+        - approximateKeys int64
+
+    }
+    class rightOuterJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(_ bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class rowFrameWindowProcessor << (S,Aquamarine) >> {
+        - windowFuncs []aggfuncs.AggFunc
+        - partialResults []aggfuncs.PartialResult
+        - start *core.FrameBound
+        - end *core.FrameBound
+        - curRowIdx uint64
+
+        - getStartOffset(numRows uint64) uint64
+        - getEndOffset(numRows uint64) uint64
+        - consumeGroupRows(ctx sessionctx.Context, rows []chunk.Row) ([]chunk.Row, error)
+        - appendResult2Chunk(ctx sessionctx.Context, rows []chunk.Row, chk *chunk.Chunk, remained int) ([]chunk.Row, error)
+        - resetPartialResult() 
+
+    }
+    class rowHashMap << (S,Aquamarine) >> {
+        - entryStore entryStore
+        - hashTable <font color=blue>map</font>[uint64]entryAddr
+        - length int
+
+        + Put(hashKey uint64, rowPtr chunk.RowPtr) 
+        + Get(hashKey uint64) []chunk.RowPtr
+        + Len() int
+
+    }
+    interface ruleChecker  {
+        - genSQL(timeRange core.QueryTimeRange) string
+        - genResult(sql string, row chunk.Row) inspectionResult
+        - getItem() string
+
+    }
+    class selectResultHook << (S,Aquamarine) >> {
+        - selectResultFunc <font color=blue>func</font>(context.Context, sessionctx.Context, *kv.Request, []*types.FieldType, *statistics.QueryFeedback, []fmt.Stringer) (distsql.SelectResult, error)
+
+        + SelectResult(ctx context.Context, sctx sessionctx.Context, kvReq *kv.Request, fieldTypes []*types.FieldType, fb *statistics.QueryFeedback, copPlanIDs []fmt.Stringer, rootPlanID fmt.Stringer) (distsql.SelectResult, error)
+
+    }
+    class semiJoiner << (S,Aquamarine) >> {
+        - tryToMatchInners(outer chunk.Row, inners chunk.Iterator, chk *chunk.Chunk) (bool, bool, error)
+        - tryToMatchOuters(outers chunk.Iterator, inner chunk.Row, chk *chunk.Chunk, outerRowStatus []outerRowStatusFlag) ([]outerRowStatusFlag, error)
+        - onMissMatch(_ bool, outer chunk.Row, chk *chunk.Chunk) 
+
+        + Clone() joiner
+
+    }
+    class shuffleOutput << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - err error
+        - giveBackCh <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class shuffleWorker << (S,Aquamarine) >> {
+        - childExec Executor
+        - finishCh <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - executed bool
+        - inputCh <font color=blue>chan</font> *chunk.Chunk
+        - inputHolderCh <font color=blue>chan</font> *chunk.Chunk
+        - outputCh <font color=blue>chan</font> *shuffleOutput
+        - outputHolderCh <font color=blue>chan</font> *chunk.Chunk
+
+        - run(ctx context.Context, waitGroup *sync.WaitGroup) 
+
+        + Open(ctx context.Context) error
+        + Close() error
+        + Next(ctx context.Context, req *chunk.Chunk) error
+
+    }
+    class slowLogChecker << (S,Aquamarine) >> {
+        - hasProcessPriv bool
+        - user *auth.UserIdentity
+        - enableTimeCheck bool
+        - startTime types.Time
+        - endTime types.Time
+
+        - hasPrivilege(userName string) bool
+        - isTimeValid(t types.Time) bool
+
+    }
+    class slowQueryRetriever << (S,Aquamarine) >> {
+        - table *model.TableInfo
+        - outputCols []*model.ColumnInfo
+        - initialized bool
+        - extractor *core.SlowQueryExtractor
+        - files []logFile
+        - fileIdx int
+        - fileLine int
+        - checker *slowLogChecker
+        - parsedSlowLogCh <font color=blue>chan</font> parsedSlowLog
+
+        - retrieve(ctx context.Context, sctx sessionctx.Context) ([][]types.Datum, error)
+        - initialize(sctx sessionctx.Context) error
+        - close() error
+        - parseDataForSlowLog(ctx context.Context, sctx sessionctx.Context) 
+        - dataForSlowLog(ctx context.Context) ([][]types.Datum, bool, error)
+        - parseSlowLog(ctx sessionctx.Context, reader *bufio.Reader, maxRow int) ([][]types.Datum, error)
+        - getAllFiles(sctx sessionctx.Context, logFilePath string) ([]logFile, error)
+        - getFileStartTime(file *os.File) (time.Time, error)
+        - getFileEndTime(file *os.File) (time.Time, error)
+        - initializeAsyncParsing(ctx context.Context, sctx sessionctx.Context) 
+
+    }
+    class slowQueryTuple << (S,Aquamarine) >> {
+        - time types.Time
+        - txnStartTs uint64
+        - user string
+        - host string
+        - connID uint64
+        - queryTime float64
+        - parseTime float64
+        - compileTime float64
+        - preWriteTime float64
+        - waitPrewriteBinlogTime float64
+        - commitTime float64
+        - getCommitTSTime float64
+        - commitBackoffTime float64
+        - backoffTypes string
+        - resolveLockTime float64
+        - localLatchWaitTime float64
+        - writeKeys uint64
+        - writeSize uint64
+        - prewriteRegion uint64
+        - txnRetry uint64
+        - copTime float64
+        - processTime float64
+        - waitTime float64
+        - backOffTime float64
+        - lockKeysTime float64
+        - requestCount uint64
+        - totalKeys uint64
+        - processKeys uint64
+        - db string
+        - indexIDs string
+        - digest string
+        - statsInfo string
+        - avgProcessTime float64
+        - p90ProcessTime float64
+        - maxProcessTime float64
+        - maxProcessAddress string
+        - avgWaitTime float64
+        - p90WaitTime float64
+        - maxWaitTime float64
+        - maxWaitAddress string
+        - memMax int64
+        - diskMax int64
+        - prevStmt string
+        - sql string
+        - isInternal bool
+        - succ bool
+        - planFromCache bool
+        - plan string
+        - planDigest string
+
+        - setFieldValue(tz *time.Location, field string, value string, lineNum int, checker *slowLogChecker) (bool, error)
+        - convertToDatumRow() []types.Datum
+
+    }
+    class splitRegionResult << (S,Aquamarine) >> {
+        - splitRegions int
+        - finishScatterNum int
+
+    }
+    class statsCache << (S,Aquamarine) >> {
+        - mu sync.RWMutex
+        - modifyTime time.Time
+        - tableRows <font color=blue>map</font>[int64]uint64
+        - colLength <font color=blue>map</font>[tableHistID]uint64
+
+        - get(ctx sessionctx.Context) (<font color=blue>map</font>[int64]uint64, <font color=blue>map</font>[tableHistID]uint64, error)
+
+    }
+    class tableHistID << (S,Aquamarine) >> {
+        - tableID int64
+        - histID int64
+
+    }
+    class tableResultHandler << (S,Aquamarine) >> {
+        - optionalResult distsql.SelectResult
+        - result distsql.SelectResult
+        - optionalFinished bool
+
+        - open(optionalResult distsql.SelectResult, result distsql.SelectResult) 
+        - nextChunk(ctx context.Context, chk *chunk.Chunk) error
+        - nextRaw(ctx context.Context) ([]byte, error)
+
+        + Close() error
+
+    }
+    class tableWorker << (S,Aquamarine) >> {
+        - idxLookup *IndexLookUpExecutor
+        - workCh <font color=blue>chan</font> *lookupTableTask
+        - finished <font color=blue>chan</font> <font color=blue>struct</font>{}
+        - buildTblReader <font color=blue>func</font>(context.Context, []int64) (Executor, error)
+        - keepOrder bool
+        - handleIdx int
+        - memTracker *memory.Tracker
+
+        - pickAndExecTask(ctx context.Context) 
+        - compareData(ctx context.Context, task *lookupTableTask, tableReader Executor) error
+        - executeTask(ctx context.Context, task *lookupTableTask) error
+
+    }
+    class thresholdCheckInspection << (S,Aquamarine) >> {
+        - inspect(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectThreshold1(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectThreshold2(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectThreshold3(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+        - inspectForLeaderDrop(ctx context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+
+    }
+    class tidbGlueSession << (S,Aquamarine) >> {
+        - se sessionctx.Context
+        - progress *brieTaskProgress
+        - info *brieTaskInfo
+
+        + GetDomain(store kv.Storage) (*domain.Domain, error)
+        + CreateSession(store kv.Storage) (glue.Session, error)
+        + Execute(ctx context.Context, sql string) error
+        + CreateDatabase(ctx context.Context, schema *model.DBInfo) error
+        + CreateTable(ctx context.Context, dbName model.CIStr, table *model.TableInfo) error
+        + Close() 
+        + Open( string,  client.SecurityOption) (kv.Storage, error)
+        + OwnsStorage() bool
+        + StartProgress(ctx context.Context, cmdName string, total int64, redirectLog bool) glue.Progress
+        + Record(name string, value uint64) 
+
+    }
+    class toBeCheckedRow << (S,Aquamarine) >> {
+        - row []types.Datum
+        - rowValue []byte
+        - handleKey *keyValueWithDupInfo
+        - uniqueKeys []*keyValueWithDupInfo
+        - t table.Table
+
+    }
+    class topNChunkHeap << (S,Aquamarine) >> {
+        - greaterRow(rowI chunk.Row, rowJ chunk.Row) bool
+
+        + Less(i int, j int) bool
+        + Len() int
+        + Push(x <font color=blue>interface</font>{}) 
+        + Pop() <font color=blue>interface</font>{}
+        + Swap(i int, j int) 
+
+    }
+    class unionWorkerResult << (S,Aquamarine) >> {
+        - chk *chunk.Chunk
+        - err error
+        - src <font color=blue>chan</font> *chunk.Chunk
+
+    }
+    class vecGroupChecker << (S,Aquamarine) >> {
+        - ctx sessionctx.Context
+        - groupOffset []int
+        - groupCount int
+        - nextGroupID int
+        - lastGroupKeyOfPrevChk []byte
+        - firstGroupKey []byte
+        - lastGroupKey []byte
+        - firstRowDatums []types.Datum
+        - lastRowDatums []types.Datum
+        - sameGroup []bool
+        - allocateBuffer <font color=blue>func</font>(types.EvalType, int) (*chunk.Column, error)
+        - releaseBuffer <font color=blue>func</font>(*chunk.Column) 
+
+        + GroupByItems []expression.Expression
+
+        - splitIntoGroups(chk *chunk.Chunk) (bool, error)
+        - evalGroupItemsAndResolveGroups(item expression.Expression, chk *chunk.Chunk, numRows int) error
+        - getNextGroup() int
+        - isExhausted() bool
+        - reset() 
+
+    }
+    class versionInspection << (S,Aquamarine) >> {
+        - inspect(_ context.Context, sctx sessionctx.Context, filter inspectionFilter) []inspectionResult
+
+    }
+    class visibleChecker << (S,Aquamarine) >> {
+        - defaultDB string
+        - ctx sessionctx.Context
+        - is infoschema.InfoSchema
+        - manager privilege.Manager
+        - ok bool
+
+        + Enter(in ast.Node) (ast.Node, bool)
+        + Leave(in ast.Node) (ast.Node, bool)
+
+    }
+    interface windowProcessor  {
+        - consumeGroupRows(ctx sessionctx.Context, rows []chunk.Row) ([]chunk.Row, error)
+        - appendResult2Chunk(ctx sessionctx.Context, rows []chunk.Row, chk *chunk.Chunk, remained int) ([]chunk.Row, error)
+        - resetPartialResult() 
+
+    }
+    class "<font color=blue>map</font>[int64]<font color=blue>map</font>[int64][]types.Datum" as fontcolorbluemapfontint64fontcolorbluemapfontint64typesDatum {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "v1.Range" as v1Range {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>() ([][]types.Datum, error)" as fontcolorbluefuncfonttypesDatumerror {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>map</font>[string][]aggfuncs.PartialResult" as fontcolorbluemapfontstringaggfuncsPartialResult {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"executor.baseExecutor" *-- "executor.AdminPluginsExec"
+"executor.baseExecutor" *-- "executor.AdminResetTelemetryIDExec"
+"executor.baseExecutor" *-- "executor.AdminShowTelemetryExec"
+"executor.baseExecutor" *-- "executor.AnalyzeExec"
+"executor.AnalyzeFastExec" *-- "executor.AnalyzeTestFastExec"
+"executor.baseExecutor" *-- "executor.BRIEExec"
+"executor.baseExecutor" *-- "executor.BatchPointGetExec"
+"executor.baseExecutor" *-- "executor.CancelDDLJobsExec"
+"ast.ChangeStmt" *-- "executor.ChangeExec"
+"executor.baseExecutor" *-- "executor.ChangeExec"
+"executor.baseExecutor" *-- "executor.CheckIndexRangeExec"
+"executor.baseExecutor" *-- "executor.CheckTableExec"
+"executor.baseExecutor" *-- "executor.ChecksumTableExec"
+"executor.baseExecutor" *-- "executor.CleanupIndexExec"
+"executor.baseExecutor" *-- "executor.DDLExec"
+"executor.DDLJobRetriever" *-- "executor.DDLJobsReaderExec"
+"executor.baseExecutor" *-- "executor.DDLJobsReaderExec"
+"executor.baseExecutor" *-- "executor.DeallocateExec"
+"executor.baseExecutor" *-- "executor.DeleteExec"
+"sync.Mutex" *-- "executor.DirtyDB"
+"executor.baseExecutor" *-- "executor.ExecuteExec"
+"executor.baseExecutor" *-- "executor.ExplainExec"
+"executor.baseExecutor" *-- "executor.GrantExec"
+"executor.baseExecutor" *-- "executor.HashAggExec"
+"executor.baseHashAggWorker" *-- "executor.HashAggFinalWorker"
+"executor.baseHashAggWorker" *-- "executor.HashAggPartialWorker"
+"executor.baseExecutor" *-- "executor.HashJoinExec"
+"executor.baseExecutor" *-- "executor.IndexAdviseExec"
+"executor.baseExecutor" *-- "executor.IndexLookUpExecutor"
+"executor.checkIndexValue" *-- "executor.IndexLookUpExecutor"
+"executor.dataReaderBuilder" *-- "executor.IndexLookUpExecutor"
+"executor.baseExecutor" *-- "executor.IndexLookUpJoin"
+"executor.baseExecutor" *-- "executor.IndexLookUpMergeJoin"
+"executor.baseExecutor" *-- "executor.IndexMergeReaderExecutor"
+"executor.checkIndexValue" *-- "executor.IndexMergeReaderExecutor"
+"executor.dataReaderBuilder" *-- "executor.IndexMergeReaderExecutor"
+"executor.IndexLookUpJoin" *-- "executor.IndexNestedLoopHashJoin"
+"executor.baseExecutor" *-- "executor.IndexReaderExecutor"
+"executor.selectResultHook" *-- "executor.IndexReaderExecutor"
+"executor.InsertValues" *-- "executor.InsertExec"
+"executor.baseExecutor" *-- "executor.InsertValues"
+"executor.baseExecutor" *-- "executor.LimitExec"
+"executor.baseExecutor" *-- "executor.LoadDataExec"
+"executor.InsertValues" *-- "executor.LoadDataInfo"
+"executor.baseExecutor" *-- "executor.LoadStatsExec"
+"executor.baseExecutor" *-- "executor.MaxOneRowExec"
+"executor.baseExecutor" *-- "executor.MemTableReaderExec"
+"executor.baseExecutor" *-- "executor.MergeJoinExec"
+"executor.dummyCloser" *-- "executor.MetricRetriever"
+"executor.dummyCloser" *-- "executor.MetricsSummaryByLabelRetriever"
+"executor.dummyCloser" *-- "executor.MetricsSummaryRetriever"
+"executor.baseExecutor" *-- "executor.NestedLoopApplyExec"
+"executor.baseExecutor" *-- "executor.PointGetExecutor"
+"executor.baseExecutor" *-- "executor.PrepareExec"
+"executor.baseExecutor" *-- "executor.ProjectionExec"
+"executor.baseExecutor" *-- "executor.RecoverIndexExec"
+"executor.baseExecutor" *-- "executor.ReloadExprPushdownBlacklistExec"
+"executor.baseExecutor" *-- "executor.ReloadOptRuleBlacklistExec"
+"executor.InsertValues" *-- "executor.ReplaceExec"
+"executor.baseExecutor" *-- "executor.RevokeExec"
+"executor.baseExecutor" *-- "executor.SQLBindExec"
+"executor.baseExecutor" *-- "executor.SelectIntoExec"
+"executor.baseExecutor" *-- "executor.SelectLockExec"
+"executor.baseExecutor" *-- "executor.SelectionExec"
+"executor.baseExecutor" *-- "executor.SetConfigExec"
+"executor.baseExecutor" *-- "executor.SetExecutor"
+"executor.baseExecutor" *-- "executor.ShowDDLExec"
+"executor.baseExecutor" *-- "executor.ShowDDLJobQueriesExec"
+"executor.DDLJobRetriever" *-- "executor.ShowDDLJobsExec"
+"executor.baseExecutor" *-- "executor.ShowDDLJobsExec"
+"executor.baseExecutor" *-- "executor.ShowExec"
+"executor.baseExecutor" *-- "executor.ShowNextRowIDExec"
+"executor.baseExecutor" *-- "executor.ShowSlowExec"
+"executor.baseExecutor" *-- "executor.ShuffleExec"
+"executor.baseExecutor" *-- "executor.SimpleExec"
+"executor.baseExecutor" *-- "executor.SortExec"
+"executor.baseExecutor" *-- "executor.SplitIndexRegionExec"
+"executor.splitRegionResult" *-- "executor.SplitIndexRegionExec"
+"executor.baseExecutor" *-- "executor.SplitTableRegionExec"
+"executor.splitRegionResult" *-- "executor.SplitTableRegionExec"
+"executor.baseExecutor" *-- "executor.StreamAggExec"
+"executor.baseExecutor" *-- "executor.TableDualExec"
+"executor.baseExecutor" *-- "executor.TableReaderExecutor"
+"executor.selectResultHook" *-- "executor.TableReaderExecutor"
+"executor.baseExecutor" *-- "executor.TableScanExec"
+"executor.SortExec" *-- "executor.TopNExec"
+"executor.baseExecutor" *-- "executor.TraceExec"
+"executor.baseExecutor" *-- "executor.UnionExec"
+"executor.baseExecutor" *-- "executor.UnionScanExec"
+"executor.baseExecutor" *-- "executor.UpdateExec"
+"executor.baseExecutor" *-- "executor.WindowExec"
+"executor.AnalyzeIndexExec" *-- "executor.analyzeIndexIncrementalExec"
+"executor.AnalyzeColumnsExec" *-- "executor.analyzePKIncrementalExec"
+"executor.baseJoiner" *-- "executor.antiLeftOuterSemiJoiner"
+"executor.baseJoiner" *-- "executor.antiSemiJoiner"
+"executor.dummyCloser" *-- "executor.clusterConfigRetriever"
+"executor.dummyCloser" *-- "executor.clusterServerInfoRetriever"
+"executor.inspectionName" *-- "executor.configInspection"
+"core.Plan" *-- "executor.dataReaderBuilder"
+"executor.executorBuilder" *-- "executor.dataReaderBuilder"
+"executor.selectResultHook" *-- "executor.dataReaderBuilder"
+"executor.innerWorker" *-- "executor.indexHashJoinInnerWorker"
+"executor.outerWorker" *-- "executor.indexHashJoinOuterWorker"
+"executor.lookUpJoinTask" *-- "executor.indexHashJoinTask"
+"executor.checkIndexValue" *-- "executor.indexWorker"
+"executor.baseJoiner" *-- "executor.innerJoiner"
+"executor.innerMergeCtx" *-- "executor.innerMergeWorker"
+"executor.innerCtx" *-- "executor.innerWorker"
+"executor.dummyCloser" *-- "executor.inspectionResultRetriever"
+"executor.dummyCloser" *-- "executor.inspectionRuleRetriever"
+"executor.dummyCloser" *-- "executor.inspectionSummaryRetriever"
+"executor.baseJoiner" *-- "executor.leftOuterJoiner"
+"executor.baseJoiner" *-- "executor.leftOuterSemiJoiner"
+"executor.dummyCloser" *-- "executor.memtableRetriever"
+"core.PhysicalPlan" *-- "executor.mockPhysicalIndexReader"
+"executor.outerMergeCtx" *-- "executor.outerMergeWorker"
+"executor.outerCtx" *-- "executor.outerWorker"
+"executor.baseJoiner" *-- "executor.rightOuterJoiner"
+"executor.baseJoiner" *-- "executor.semiJoiner"
+"executor.baseExecutor" *-- "executor.shuffleWorker"
+"executor.checkIndexValue" *-- "executor.tableWorker"
+"executor.TopNExec" *-- "executor.topNChunkHeap"
+
+"executor.Closeable" <|-- "executor.BatchPointGetExec"
+"executor.Closeable" <|-- "executor.CheckIndexRangeExec"
+"executor.Closeable" <|-- "executor.CheckTableExec"
+"executor.Closeable" <|-- "executor.CleanupIndexExec"
+"executor.Closeable" <|-- "executor.DeleteExec"
+"executor.Closeable" <|-- "executor.ExplainExec"
+"executor.Closeable" <|-- "executor.HashAggExec"
+"executor.Closeable" <|-- "executor.HashJoinExec"
+"executor.Closeable" <|-- "executor.IndexAdviseExec"
+"executor.Closeable" <|-- "executor.IndexLookUpExecutor"
+"executor.Closeable" <|-- "executor.IndexLookUpJoin"
+"executor.Closeable" <|-- "executor.IndexLookUpMergeJoin"
+"executor.Closeable" <|-- "executor.IndexMergeReaderExecutor"
+"executor.Closeable" <|-- "executor.IndexNestedLoopHashJoin"
+"executor.Closeable" <|-- "executor.IndexReaderExecutor"
+"executor.Closeable" <|-- "executor.InsertExec"
+"executor.insertCommon" <|-- "executor.InsertValues"
+"executor.Closeable" <|-- "executor.LimitExec"
+"executor.Closeable" <|-- "executor.LoadDataExec"
+"executor.Closeable" <|-- "executor.LoadStatsExec"
+"executor.Closeable" <|-- "executor.MemTableReaderExec"
+"executor.Closeable" <|-- "executor.MergeJoinExec"
+"executor.Closeable" <|-- "executor.NestedLoopApplyExec"
+"executor.Closeable" <|-- "executor.PointGetExecutor"
+"executor.Closeable" <|-- "executor.ProjectionExec"
+"executor.Closeable" <|-- "executor.ReplaceExec"
+"executor.Closeable" <|-- "executor.SelectIntoExec"
+"executor.Closeable" <|-- "executor.SelectionExec"
+"executor.Closeable" <|-- "executor.ShuffleExec"
+"executor.Closeable" <|-- "executor.SortExec"
+"executor.Closeable" <|-- "executor.StreamAggExec"
+"executor.Closeable" <|-- "executor.TableReaderExecutor"
+"executor.Closeable" <|-- "executor.UnionExec"
+"executor.Closeable" <|-- "executor.UpdateExec"
+"executor.Closeable" <|-- "executor.WindowExec"
+"executor.windowProcessor" <|-- "executor.aggWindowProcessor"
+"executor.joiner" <|-- "executor.antiLeftOuterSemiJoiner"
+"executor.joiner" <|-- "executor.antiSemiJoiner"
+"executor.Closeable" <|-- "executor.baseExecutor"
+"executor.Executor" <|-- "executor.baseExecutor"
+"executor.ruleChecker" <|-- "executor.checkRegionHealth"
+"executor.ruleChecker" <|-- "executor.checkStoreRegionTooMuch"
+"executor.Closeable" <|-- "executor.chunkRowRecordSet"
+"executor.memTableRetriever" <|-- "executor.clusterLogRetriever"
+"executor.ruleChecker" <|-- "executor.compareStoreStatus"
+"executor.Closeable" <|-- "executor.hashRowContainer"
+"executor.joiner" <|-- "executor.innerJoiner"
+"executor.ruleChecker" <|-- "executor.inspectCPULoad"
+"executor.ruleChecker" <|-- "executor.inspectDiskUsage"
+"executor.ruleChecker" <|-- "executor.inspectSwapMemoryUsed"
+"executor.ruleChecker" <|-- "executor.inspectVirtualMemUsage"
+"executor.joiner" <|-- "executor.leftOuterJoiner"
+"executor.joiner" <|-- "executor.leftOuterSemiJoiner"
+"executor.partitionSplitter" <|-- "executor.partitionHashSplitter"
+"executor.windowProcessor" <|-- "executor.rangeFrameWindowProcessor"
+"executor.Closeable" <|-- "executor.recordSet"
+"executor.joiner" <|-- "executor.rightOuterJoiner"
+"executor.windowProcessor" <|-- "executor.rowFrameWindowProcessor"
+"executor.joiner" <|-- "executor.semiJoiner"
+"executor.Closeable" <|-- "executor.shuffleWorker"
+"executor.memTableRetriever" <|-- "executor.slowQueryRetriever"
+"executor.Closeable" <|-- "executor.tableResultHandler"
+
+"__builtin__.byte" #.. "executor.outerRowStatusFlag"
+"__builtin__.int" #.. "executor.IndexAdviseVarKeyType"
+"__builtin__.int" #.. "executor.loadDataVarKeyType"
+"__builtin__.int" #.. "executor.loadStatsVarKeyType"
+"__builtin__.int" #.. "executor.objectType"
+"__builtin__.int" #.. "executor.taskType"
+"__builtin__.int64" #.. "aggfuncs.partialResult4Count"
+"__builtin__.uint32" #.. "aggfuncs.approxCountDistinctHashValue"
+"__builtin__.uint64" #.. "aggfuncs.partialResult4BitFunc"
+"aggfuncs.unsafePointer" #.. "aggfuncs.PartialResult"
+"executor.fontcolorbluefuncfonttypesDatumerror" #.. "executor.TestShowClusterConfigFunc"
+"executor.<font color=blue>func</font>([]byte, []byte) error" #.. "executor.processKVFunc"
+"executor.fontcolorbluemapfontint64fontcolorbluemapfontint64typesDatum" #.. "executor.tableRowMapType"
+"executor.fontcolorbluemapfontstringaggfuncsPartialResult" #.. "executor.aggPartialResultMapper"
+"executor.[]logStreamResult" #.. "executor.logResponseHeap"
+"executor.v1Range" #.. "executor.promQLQueryRange"
+@enduml
