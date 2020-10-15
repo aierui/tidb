@@ -332,7 +332,7 @@ func (a *ExecStmt) Exec(ctx context.Context) (_ sqlexec.RecordSet, err error) {
 	var pi processinfoSetter
 	if raw, ok := sctx.(processinfoSetter); ok {
 		pi = raw
-		sql := a.OriginText()
+		sql := a.OriginText() // 获取到原始（用户输入的）的 sql 语句
 		if simple, ok := a.Plan.(*plannercore.Simple); ok && simple.Statement != nil {
 			if ss, ok := simple.Statement.(ast.SensitiveStmtNode); ok {
 				// Use SecureText to avoid leak password information.
